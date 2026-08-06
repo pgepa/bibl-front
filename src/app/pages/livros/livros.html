@@ -1,0 +1,104 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Acervo</p>
+      <h1>Livros</h1>
+      <p class="lead">Cadastre e consulte os títulos da biblioteca.</p>
+    </div>
+  </header>
+
+  @if (erro()) {
+    <p class="banner error">{{ erro() }}</p>
+  }
+  @if (sucesso()) {
+    <p class="banner success">{{ sucesso() }}</p>
+  }
+
+  <div class="grid-two">
+    <form class="panel form" [formGroup]="form" (ngSubmit)="salvar()">
+      <h2>{{ editandoId() ? 'Editar livro' : 'Novo livro' }}</h2>
+
+      <label>
+        Título
+        <input formControlName="titulo" type="text" placeholder="Ex.: Dom Casmurro" />
+      </label>
+
+      <label>
+        Autor
+        <input formControlName="autor" type="text" placeholder="Ex.: Machado de Assis" />
+      </label>
+
+      <label>
+        ISBN
+        <input formControlName="isbn" type="text" placeholder="Ex.: 9788535914849" />
+      </label>
+
+      <label>
+        Ano de lançamento
+        <input formControlName="anoLancamento" type="number" min="1" />
+      </label>
+
+      <div class="actions">
+        <button type="submit" class="btn primary" [disabled]="salvando()">
+          {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
+        </button>
+        @if (editandoId()) {
+          <button type="button" class="btn ghost" (click)="cancelarEdicao()">Cancelar</button>
+        }
+      </div>
+    </form>
+
+    <div class="panel">
+      <div class="panel-toolbar">
+        <h2>Consulta</h2>
+        <input
+          type="search"
+          placeholder="Buscar por título, autor ou ISBN"
+          [value]="busca()"
+          (input)="busca.set($any($event.target).value)"
+        />
+      </div>
+
+      @if (carregando()) {
+        <p class="empty">Carregando livros...</p>
+      } @else if (livrosFiltrados().length === 0) {
+        <p class="empty">Nenhum livro encontrado.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Ano</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (livro of livrosFiltrados(); track livro.id) {
+                <tr>
+                  <td>
+                    <strong>{{ livro.titulo }}</strong>
+                    <small>{{ livro.isbn }}</small>
+                  </td>
+                  <td>{{ livro.autor }}</td>
+                  <td>{{ livro.anoLancamento }}</td>
+                  <td>
+                    <span class="badge" [class.ok]="livro.disponivel" [class.warn]="!livro.disponivel">
+                      {{ livro.disponivel ? 'Disponível' : 'Emprestado' }}
+                    </span>
+                  </td>
+                  <td class="row-actions">
+                    <button type="button" class="btn subtle" (click)="editar(livro)">Editar</button>
+                    <button type="button" class="btn danger-text" (click)="remover(livro)">Remover</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</section>

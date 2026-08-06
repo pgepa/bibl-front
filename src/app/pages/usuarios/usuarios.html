@@ -1,0 +1,90 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Leitores</p>
+      <h1>Usuários</h1>
+      <p class="lead">Cadastre e consulte os leitores autorizados a emprestar.</p>
+    </div>
+  </header>
+
+  @if (erro()) {
+    <p class="banner error">{{ erro() }}</p>
+  }
+  @if (sucesso()) {
+    <p class="banner success">{{ sucesso() }}</p>
+  }
+
+  <div class="grid-two">
+    <form class="panel form" [formGroup]="form" (ngSubmit)="salvar()">
+      <h2>{{ editandoId() ? 'Editar usuário' : 'Novo usuário' }}</h2>
+
+      <label>
+        Nome
+        <input formControlName="nome" type="text" placeholder="Nome completo" />
+      </label>
+
+      <label>
+        E-mail
+        <input formControlName="email" type="email" placeholder="nome@exemplo.com" />
+      </label>
+
+      <label>
+        Telefone
+        <input formControlName="telefone" type="tel" placeholder="(91) 99999-9999" />
+      </label>
+
+      <div class="actions">
+        <button type="submit" class="btn primary" [disabled]="salvando()">
+          {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
+        </button>
+        @if (editandoId()) {
+          <button type="button" class="btn ghost" (click)="cancelarEdicao()">Cancelar</button>
+        }
+      </div>
+    </form>
+
+    <div class="panel">
+      <div class="panel-toolbar">
+        <h2>Consulta</h2>
+        <input
+          type="search"
+          placeholder="Buscar por nome, e-mail ou telefone"
+          [value]="busca()"
+          (input)="busca.set($any($event.target).value)"
+        />
+      </div>
+
+      @if (carregando()) {
+        <p class="empty">Carregando usuários...</p>
+      } @else if (usuariosFiltrados().length === 0) {
+        <p class="empty">Nenhum usuário encontrado.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Telefone</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (usuario of usuariosFiltrados(); track usuario.id) {
+                <tr>
+                  <td><strong>{{ usuario.nome }}</strong></td>
+                  <td>{{ usuario.email }}</td>
+                  <td>{{ usuario.telefone }}</td>
+                  <td class="row-actions">
+                    <button type="button" class="btn subtle" (click)="editar(usuario)">Editar</button>
+                    <button type="button" class="btn danger-text" (click)="remover(usuario)">Remover</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </div>
+</section>

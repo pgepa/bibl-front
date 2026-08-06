@@ -1,0 +1,31 @@
+<section class="page home">
+  <div class="hero">
+    <p class="eyebrow">Painel Bibl</p>
+    <h1>Controle do acervo em um só lugar</h1>
+    <p class="lead">
+      Cadastre livros e usuários, registre empréstimos e registre devoluções com o fluxo mínimo do dia a dia.
+    </p>
+  </div>
+
+  @if (erro()) {
+    <p class="banner error">{{ erro() }}</p>
+  }
+
+  <div class="stats">
+    @for (item of resumo(); track item.label) {
+      <article class="stat">
+        <span>{{ item.label }}</span>
+        <strong>{{ carregando() ? '—' : item.value }}</strong>
+      </article>
+    }
+  </div>
+
+  <div class="shortcuts">
+    @for (atalho of atalhos; track atalho.path) {
+      <a [routerLink]="atalho.path" class="shortcut">
+        <h2>{{ atalho.titulo }}</h2>
+        <p>{{ atalho.texto }}</p>
+      </a>
+    }
+  </div>
+</section>
