@@ -19,6 +19,11 @@
       <h2>{{ editandoId() ? 'Editar usuário' : 'Novo usuário' }}</h2>
 
       <label>
+        CPF
+        <input formControlName="cpf" type="text" placeholder="Somente números" maxlength="11" />
+      </label>
+
+      <label>
         Nome
         <input formControlName="nome" type="text" placeholder="Nome completo" />
       </label>
@@ -64,6 +69,7 @@
             <thead>
               <tr>
                 <th>Nome</th>
+                <th>CPF</th>
                 <th>E-mail</th>
                 <th>Telefone</th>
                 <th></th>
@@ -73,6 +79,7 @@
               @for (usuario of usuariosFiltrados(); track usuario.id) {
                 <tr>
                   <td><strong>{{ usuario.nome }}</strong></td>
+                  <td>{{ usuario.cpf }}</td>
                   <td>{{ usuario.email }}</td>
                   <td>{{ usuario.telefone }}</td>
                   <td class="row-actions">

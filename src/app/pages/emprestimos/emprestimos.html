@@ -38,6 +38,11 @@
         </select>
       </label>
 
+      <label>
+        Previsão de devolução
+        <input formControlName="dataPrevistaDevolucao" type="date" />
+      </label>
+
       @if (livrosDisponiveis().length === 0) {
         <p class="hint">Não há livros disponíveis no momento.</p>
       }
@@ -79,8 +84,8 @@
           <button
             type="button"
             class="chip"
-            [class.active]="filtroStatus() === 'DEVOLVIDO'"
-            (click)="filtroStatus.set('DEVOLVIDO')"
+            [class.active]="filtroStatus() === 'CONCLUIDO'"
+            (click)="filtroStatus.set('CONCLUIDO')"
           >
             Devolvidos
           </button>
@@ -99,6 +104,7 @@
                 <th>Livro</th>
                 <th>Usuário</th>
                 <th>Empréstimo</th>
+                <th>Previsão</th>
                 <th>Devolução</th>
                 <th>Status</th>
                 <th></th>
@@ -110,11 +116,12 @@
                   <td><strong>{{ item.livro.titulo }}</strong></td>
                   <td>{{ item.usuario.nome }}</td>
                   <td>{{ item.dataEmprestimo | date: 'dd/MM/yyyy' }}</td>
+                  <td>{{ item.dataPrevistaDevolucao | date: 'dd/MM/yyyy' }}</td>
                   <td>{{ item.dataDevolucao ? (item.dataDevolucao | date: 'dd/MM/yyyy') : '—' }}</td>
                   <td>
                     <span
                       class="badge"
-                      [class.ok]="item.statusEmprestimo === 'DEVOLVIDO'"
+                      [class.ok]="item.statusEmprestimo === 'CONCLUIDO'"
                       [class.warn]="item.statusEmprestimo === 'ATIVO'"
                     >
                       {{ item.statusEmprestimo === 'ATIVO' ? 'Ativo' : 'Devolvido' }}

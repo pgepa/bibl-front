@@ -29,11 +29,18 @@ export class EmprestimosComponent implements OnInit {
   readonly devolvendoId = signal<number | null>(null);
   readonly erro = signal<string | null>(null);
   readonly sucesso = signal<string | null>(null);
-  readonly filtroStatus = signal<'TODOS' | 'ATIVO' | 'DEVOLVIDO'>('TODOS');
+  readonly filtroStatus = signal<'TODOS' | 'ATIVO' | 'CONCLUIDO'>('TODOS');
+
+  private prazoPadrao(): string {
+    const data = new Date();
+    data.setDate(data.getDate() + 14);
+    return data.toISOString().slice(0, 10);
+  }
 
   readonly form = this.fb.nonNullable.group({
     livroId: [0, [Validators.required, Validators.min(1)]],
     usuarioId: [0, [Validators.required, Validators.min(1)]],
+    dataPrevistaDevolucao: [this.prazoPadrao(), Validators.required],
   });
 
   ngOnInit(): void {
@@ -82,7 +89,7 @@ export class EmprestimosComponent implements OnInit {
     this.emprestimoService.realizar(payload).subscribe({
       next: () => {
         this.sucesso.set('Empréstimo registrado.');
-        this.form.reset({ livroId: 0, usuarioId: 0 });
+        this.form.reset({ livroId: 0, usuarioId: 0, dataPrevistaDevolucao: this.prazoPadrao() });
         this.salvando.set(false);
         this.carregar();
       },

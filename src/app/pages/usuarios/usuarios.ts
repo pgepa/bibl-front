@@ -22,6 +22,7 @@ export class UsuariosComponent implements OnInit {
   readonly busca = signal('');
 
   readonly form = this.fb.nonNullable.group({
+    cpf: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     nome: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     telefone: ['', Validators.required],
@@ -39,6 +40,7 @@ export class UsuariosComponent implements OnInit {
     return this.usuarios().filter(
       (usuario) =>
         usuario.nome.toLowerCase().includes(termo) ||
+        usuario.cpf.toLowerCase().includes(termo) ||
         usuario.email.toLowerCase().includes(termo) ||
         usuario.telefone.toLowerCase().includes(termo),
     );
@@ -61,17 +63,20 @@ export class UsuariosComponent implements OnInit {
   editar(usuario: Usuario): void {
     this.editandoId.set(usuario.id);
     this.form.setValue({
+      cpf: usuario.cpf,
       nome: usuario.nome,
       email: usuario.email,
       telefone: usuario.telefone,
     });
+    this.form.controls.cpf.disable();
     this.sucesso.set(null);
     this.erro.set(null);
   }
 
   cancelarEdicao(): void {
     this.editandoId.set(null);
-    this.form.reset({ nome: '', email: '', telefone: '' });
+    this.form.controls.cpf.enable();
+    this.form.reset({ cpf: '', nome: '', email: '', telefone: '' });
   }
 
   salvar(): void {
