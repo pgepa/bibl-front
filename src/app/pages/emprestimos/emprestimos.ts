@@ -8,7 +8,7 @@ import { UsuarioService } from '../../services/usuario.service';
 import { Emprestimo } from '../../models/emprestimo';
 import { Livro } from '../../models/livro';
 import { Usuario } from '../../models/usuario';
-import {AbstractControl. ValidatorsErrors} from '@angular/forms';
+import {AbstractControl, ValidationErrors} from '@angular/forms';
 
 @Component({
   selector: 'app-emprestimos',
@@ -43,15 +43,15 @@ export class EmprestimosComponent implements OnInit {
     return data.toISOString().slice(0, 10);
   }
 
-  private dataNaoPassadaValidator(control: AbstractControl) : ValidatorsErrors | null{
+  private dataNaoPassadaValidator(control: AbstractControl) : ValidationErrors | null{
     if(!control.value){
       return null;
     }
 
-    return control.vlaue < this.hoje ? {dtaPassada = true} : null;
+    return control.value < this.hoje ? {dataPassada: true} : null;
   }
 
-  readonly hoje = new Date.toISOString().slice(0,10);
+  readonly hoje = new Date().toISOString().slice(0,10);
 
   readonly form = this.fb.nonNullable.group({
     livroId: [0, [Validators.required, Validators.min(1)]],
