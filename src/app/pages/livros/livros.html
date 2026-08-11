@@ -35,8 +35,11 @@
 
       <label>
         Ano de lançamento
-        <input formControlName="anoLancamento" type="number" min="1" />
+        <input formControlName="anoLancamento" type="number" min="1" [max]="anoAtual" />
       </label>
+      @if (form.controls.anoLancamento.hasError('max')) {
+        <p class="hint">Não é possível cadastrar um ano posterior a {{ anoAtual }}.</p>
+      }
 
       <div class="actions">
         <button type="submit" class="btn primary" [disabled]="salvando()">

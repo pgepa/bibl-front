@@ -8,6 +8,7 @@ import { UsuarioService } from '../../services/usuario.service';
 import { Emprestimo } from '../../models/emprestimo';
 import { Livro } from '../../models/livro';
 import { Usuario } from '../../models/usuario';
+import {AbstractControl. ValidatorsErrors} from '@angular/forms';
 
 @Component({
   selector: 'app-emprestimos',
@@ -31,16 +32,31 @@ export class EmprestimosComponent implements OnInit {
   readonly sucesso = signal<string | null>(null);
   readonly filtroStatus = signal<'TODOS' | 'ATIVO' | 'CONCLUIDO'>('TODOS');
 
+  readonly buscaLivro = signal('');
+  readonly buscaUsuario = signal('');
+  readonly listaLivrosAberta = signal(false);
+  readonly listaUsuariosAberta = signal(false);
+
   private prazoPadrao(): string {
     const data = new Date();
     data.setDate(data.getDate() + 14);
     return data.toISOString().slice(0, 10);
   }
 
+  private dataNaoPassadaValidator(control: AbstractControl) : ValidatorsErrors | null{
+    if(!control.value){
+      return null;
+    }
+
+    return control.vlaue < this.hoje ? {dtaPassada = true} : null;
+  }
+
+  readonly hoje = new Date.toISOString().slice(0,10);
+
   readonly form = this.fb.nonNullable.group({
     livroId: [0, [Validators.required, Validators.min(1)]],
     usuarioId: [0, [Validators.required, Validators.min(1)]],
-    dataPrevistaDevolucao: [this.prazoPadrao(), Validators.required],
+    dataPrevistaDevolucao: [this.prazoPadrao(), [Validators.required, this.dataNaoPassadaValidator.bind(this)]],
   });
 
   ngOnInit(): void {
@@ -53,6 +69,70 @@ export class EmprestimosComponent implements OnInit {
       return this.emprestimos();
     }
     return this.emprestimos().filter((item) => item.statusEmprestimo === filtro);
+  }
+
+  livrosFiltrados(): Livro[] {
+    const termo = this.buscaLivro().trim().toLowerCase();
+    const lista = this.livrosDisponiveis();
+    if (!termo) {
+      return lista;
+    }
+    return lista.filter(
+      (livro) =>
+        livro.titulo.toLowerCase().includes(termo) ||
+        livro.autor.toLowerCase().includes(termo) ||
+        livro.isbn.toLowerCase().includes(termo),
+    );
+  }
+
+  usuariosFiltrados(): Usuario[] {
+    const termo = this.buscaUsuario().trim().toLowerCase();
+    const lista = this.usuarios();
+    if (!termo) {
+      return lista;
+    }
+    return lista.filter(
+      (usuario) =>
+        usuario.nome.toLowerCase().includes(termo) ||
+        usuario.cpf.toLowerCase().includes(termo) ||
+        usuario.email.toLowerCase().includes(termo),
+    );
+  }
+
+  onBuscaLivroChange(valor: string): void {
+    this.buscaLivro.set(valor);
+    this.listaLivrosAberta.set(true);
+    if (this.form.controls.livroId.value !== 0) {
+      this.form.controls.livroId.setValue(0);
+    }
+  }
+
+  onBuscaUsuarioChange(valor: string): void {
+    this.buscaUsuario.set(valor);
+    this.listaUsuariosAberta.set(true);
+    if (this.form.controls.usuarioId.value !== 0) {
+      this.form.controls.usuarioId.setValue(0);
+    }
+  }
+
+  selecionarLivro(livro: Livro): void {
+    this.form.controls.livroId.setValue(livro.id);
+    this.buscaLivro.set(`${livro.titulo} — ${livro.autor}`);
+    this.listaLivrosAberta.set(false);
+  }
+
+  selecionarUsuario(usuario: Usuario): void {
+    this.form.controls.usuarioId.setValue(usuario.id);
+    this.buscaUsuario.set(usuario.nome);
+    this.listaUsuariosAberta.set(false);
+  }
+
+  fecharListaLivros(): void {
+    setTimeout(() => this.listaLivrosAberta.set(false), 150);
+  }
+
+  fecharListaUsuarios(): void {
+    setTimeout(() => this.listaUsuariosAberta.set(false), 150);
   }
 
   carregar(): void {
@@ -90,6 +170,8 @@ export class EmprestimosComponent implements OnInit {
       next: () => {
         this.sucesso.set('Empréstimo registrado.');
         this.form.reset({ livroId: 0, usuarioId: 0, dataPrevistaDevolucao: this.prazoPadrao() });
+        this.buscaLivro.set('');
+        this.buscaUsuario.set('');
         this.salvando.set(false);
         this.carregar();
       },

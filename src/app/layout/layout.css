@@ -16,8 +16,8 @@
   padding: 1.75rem 1.25rem;
   color: var(--ink-on-deep);
   background:
-    radial-gradient(circle at 20% 10%, rgba(126, 184, 168, 0.22), transparent 45%),
-    linear-gradient(165deg, var(--deep) 0%, #14363b 55%, #0e2a2e 100%);
+    radial-gradient(circle at 20% 10%, rgba(111, 217, 174, 0.25), transparent 45%),
+    linear-gradient(165deg, var(--deep) 0%, #146650 55%, #0f4a3a 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -34,7 +34,7 @@
   height: 2.5rem;
   border-radius: 0.7rem;
   background:
-    linear-gradient(135deg, var(--accent) 0%, #3d8b7a 100%);
+    linear-gradient(135deg, var(--accent) 0%, #2f9d76 100%);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
   position: relative;
 }
@@ -91,7 +91,7 @@
 }
 
 .nav a.active {
-  background: rgba(126, 184, 168, 0.22);
+  background: rgba(111, 217, 174, 0.25);
   color: #fff;
 }
 

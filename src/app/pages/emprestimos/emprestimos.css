@@ -27,3 +27,63 @@
   font-size: 0.9rem;
   color: var(--muted);
 }
+
+.combo {
+  position: relative;
+}
+
+.combo-list {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.combo-list li {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.55rem 0.6rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.combo-list li:hover {
+  background: color-mix(in srgb, var(--accent) 14%, white);
+}
+
+.combo-list li strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.combo-list li small {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.combo-empty {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  box-shadow: var(--shadow-soft);
+}

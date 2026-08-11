@@ -20,12 +20,16 @@ export class LivrosComponent implements OnInit {
   readonly sucesso = signal<string | null>(null);
   readonly editandoId = signal<number | null>(null);
   readonly busca = signal('');
+  readonly anoAtual = new Date().getFullYear();
 
   readonly form = this.fb.nonNullable.group({
     titulo: ['', Validators.required],
     autor: ['', Validators.required],
     isbn: ['', Validators.required],
-    anoLancamento: [new Date().getFullYear(), [Validators.required, Validators.min(1)]],
+    anoLancamento: [
+      this.anoAtual,
+      [Validators.required, Validators.min(1), Validators.max(this.anoAtual)],
+    ],
   });
 
   ngOnInit(): void {
@@ -77,7 +81,7 @@ export class LivrosComponent implements OnInit {
       titulo: '',
       autor: '',
       isbn: '',
-      anoLancamento: new Date().getFullYear(),
+      anoLancamento: this.anoAtual,
     });
   }
 

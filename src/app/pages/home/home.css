@@ -89,7 +89,7 @@
 .shortcut:hover {
   transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  box-shadow: 0 14px 28px rgba(15, 76, 92, 0.1);
+  box-shadow: 0 14px 28px rgba(26, 122, 94, 0.12);
 }
 
 .shortcut h2 {

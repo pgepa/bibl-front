@@ -25,7 +25,7 @@ export class UsuariosComponent implements OnInit {
     cpf: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     nome: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    telefone: ['', Validators.required],
+    telefone: ['', [Validators.required, Validators.pattern(/\d{11}$/)]]
   });
 
   ngOnInit(): void {

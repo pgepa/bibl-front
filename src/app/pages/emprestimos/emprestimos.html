@@ -18,29 +18,63 @@
     <form class="panel form" [formGroup]="form" (ngSubmit)="realizar()">
       <h2>Novo empréstimo</h2>
 
-      <label>
+      <label class="combo">
         Livro disponível
-        <select formControlName="livroId">
-          <option [ngValue]="0" disabled>Selecione um livro</option>
-          @for (livro of livrosDisponiveis(); track livro.id) {
-            <option [ngValue]="livro.id">{{ livro.titulo }} — {{ livro.autor }}</option>
-          }
-        </select>
+        <input
+          type="text"
+          placeholder="Buscar por título, autor ou ISBN"
+          [value]="buscaLivro()"
+          (input)="onBuscaLivroChange($any($event.target).value)"
+          (focus)="listaLivrosAberta.set(true)"
+          (blur)="fecharListaLivros()"
+          [disabled]="livrosDisponiveis().length === 0"
+          autocomplete="off"
+        />
+        @if (listaLivrosAberta() && livrosFiltrados().length > 0) {
+          <ul class="combo-list">
+            @for (livro of livrosFiltrados(); track livro.id) {
+              <li (mousedown)="selecionarLivro(livro)">
+                <strong>{{ livro.titulo }}</strong>
+                <small>{{ livro.autor }}</small>
+              </li>
+            }
+          </ul>
+        }
+        @if (listaLivrosAberta() && buscaLivro() && livrosFiltrados().length === 0) {
+          <p class="combo-empty">Nenhum livro encontrado.</p>
+        }
       </label>
 
-      <label>
+      <label class="combo">
         Usuário
-        <select formControlName="usuarioId">
-          <option [ngValue]="0" disabled>Selecione um usuário</option>
-          @for (usuario of usuarios(); track usuario.id) {
-            <option [ngValue]="usuario.id">{{ usuario.nome }}</option>
-          }
-        </select>
+        <input
+          type="text"
+          placeholder="Buscar por nome, CPF ou e-mail"
+          [value]="buscaUsuario()"
+          (input)="onBuscaUsuarioChange($any($event.target).value)"
+          (focus)="listaUsuariosAberta.set(true)"
+          (blur)="fecharListaUsuarios()"
+          [disabled]="usuarios().length === 0"
+          autocomplete="off"
+        />
+        @if (listaUsuariosAberta() && usuariosFiltrados().length > 0) {
+          <ul class="combo-list">
+            @for (usuario of usuariosFiltrados(); track usuario.id) {
+              <li (mousedown)="selecionarUsuario(usuario)">
+                <strong>{{ usuario.nome }}</strong>
+                <small>{{ usuario.cpf }}</small>
+              </li>
+            }
+          </ul>
+        }
+        @if (listaUsuariosAberta() && buscaUsuario() && usuariosFiltrados().length === 0) {
+          <p class="combo-empty">Nenhum usuário encontrado.</p>
+        }
       </label>
 
       <label>
         Previsão de devolução
-        <input formControlName="dataPrevistaDevolucao" type="date" />
+        <input formControlName="dataPrevistaDevolucao" type="date" min="hoje"/>
       </label>
 
       @if (livrosDisponiveis().length === 0) {
