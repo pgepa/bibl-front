@@ -18,6 +18,8 @@
   --shadow-soft: 0 8px 24px rgba(20, 60, 48, 0.06);
   --shadow-lift: 0 18px 40px rgba(20, 60, 48, 0.14);
   --radius: 0.85rem;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-touch: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 *,
@@ -151,12 +153,17 @@ select {
   background: #fff;
   outline: none;
   font-size: 0.92rem;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    width 260ms var(--ease-touch),
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 260ms var(--ease-touch);
 }
 
 .search-field input:focus {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
   box-shadow: 0 0 0 3px rgba(111, 217, 174, 0.2);
+  transform: translateY(-1px);
 }
 
 .toolbar .btn.new {
@@ -169,14 +176,15 @@ select {
   color: #fff;
   border: none;
   letter-spacing: 0.01em;
-  transition: transform 200ms cubic-bezier(0.175, 0.885, 0.32, 1.2),
-              box-shadow 200ms ease,
-              filter 200ms ease;
+  transition:
+    transform 200ms cubic-bezier(0.175, 0.885, 0.32, 1.2),
+    box-shadow 200ms ease,
+    filter 200ms ease;
 }
 .toolbar .btn.new:hover {
   filter: brightness(1.1);
   transform: translateY(-2px) scale(1.04);
-  box-shadow: 0 6px 18px rgba(31,157,99,0.3);
+  box-shadow: 0 6px 18px rgba(31, 157, 99, 0.3);
 }
 .toolbar .btn.new:active {
   transform: scale(0.97);
@@ -195,7 +203,9 @@ select {
   width: max-content;
   max-width: 100%;
   margin-bottom: 1.25rem;
-  box-shadow: inset 0 2px 5px rgba(20, 60, 48, 0.03), 0 4px 12px rgba(20, 60, 48, 0.04);
+  box-shadow:
+    inset 0 2px 5px rgba(20, 60, 48, 0.03),
+    0 4px 12px rgba(20, 60, 48, 0.04);
   overflow-x: auto;
   position: relative;
   scrollbar-width: none;
@@ -298,7 +308,7 @@ select {
   border-radius: 999px;
   overflow: hidden;
   background: #fff;
-  box-shadow: 0 2px 6px rgba(14,76,52,0.05);
+  box-shadow: 0 2px 6px rgba(14, 76, 52, 0.05);
   transition: box-shadow 150ms ease;
 }
 
@@ -307,7 +317,7 @@ select {
 }
 
 .action-pill-group:hover {
-  box-shadow: 0 4px 12px rgba(14,76,52,0.1);
+  box-shadow: 0 4px 12px rgba(14, 76, 52, 0.1);
 }
 
 .action-pill {
@@ -323,7 +333,9 @@ select {
   color: var(--accent-deep);
   cursor: pointer;
   white-space: nowrap;
-  transition: background 150ms ease, color 150ms ease;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
 }
 
 .action-pill:hover {
@@ -354,7 +366,7 @@ select {
 
 .btn {
   border: 1px solid transparent;
-  border-radius: 0.7rem;
+  border-radius: 999px;
   padding: 0.65rem 0.95rem;
   cursor: pointer;
   font-weight: 600;
@@ -362,7 +374,11 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
+  transition:
+    transform 220ms var(--ease-spring),
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 220ms var(--ease-spring);
 }
 
 .btn:disabled {
@@ -373,6 +389,10 @@ select {
 .btn:not(:disabled):hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(22, 122, 84, 0.12);
+}
+
+.btn:not(:disabled):active {
+  transform: translateY(0) scale(0.97);
 }
 
 .btn.primary {
@@ -412,7 +432,9 @@ select {
   border-color: color-mix(in srgb, var(--warn) 30%, transparent);
   padding: 0.38rem 0.65rem;
   font-size: 0.8rem;
-  transition: background 150ms ease, transform 150ms ease;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
 }
 .btn-desativar:hover {
   background: color-mix(in srgb, var(--warn) 10%, white);
@@ -425,7 +447,9 @@ select {
   border-color: color-mix(in srgb, var(--ok) 30%, transparent);
   padding: 0.38rem 0.65rem;
   font-size: 0.8rem;
-  transition: background 150ms ease, transform 150ms ease;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
 }
 .btn-ativar:hover {
   background: color-mix(in srgb, var(--ok) 10%, white);
@@ -581,7 +605,10 @@ td small {
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
 }
 
 .pagination button:hover:not(:disabled) {
@@ -689,6 +716,22 @@ td small {
 
 /* ---------- Form ---------- */
 
+@keyframes breathing-shadow {
+  0%,
+  100% {
+    box-shadow:
+      0 18px 45px rgba(14, 76, 52, 0.2),
+      0 0 0 1px rgba(111, 217, 174, 0.18),
+      0 0 24px rgba(79, 185, 139, 0.12);
+  }
+  50% {
+    box-shadow:
+      0 22px 54px rgba(14, 76, 52, 0.3),
+      0 0 0 1px rgba(111, 217, 174, 0.24),
+      0 0 30px rgba(79, 185, 139, 0.18);
+  }
+}
+
 .form {
   display: grid;
   gap: 0.85rem;
@@ -712,7 +755,9 @@ td small {
   background: #fff;
   color: var(--ink);
   outline: none;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 
 .form input:focus,
@@ -779,14 +824,14 @@ td small {
   color: var(--accent-deep);
   background: color-mix(in srgb, var(--accent) 6%, #fff);
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(31,157,99,0.1);
+  box-shadow: 0 3px 8px rgba(31, 157, 99, 0.1);
 }
 
 .col-pill.active {
   background: color-mix(in srgb, var(--accent-deep) 10%, #fff);
   border-color: color-mix(in srgb, var(--accent-deep) 45%, var(--line));
   color: var(--accent-deep);
-  box-shadow: 0 2px 6px rgba(22,122,84,0.12);
+  box-shadow: 0 2px 6px rgba(22, 122, 84, 0.12);
 }
 
 .col-pill.active::before {
@@ -806,13 +851,16 @@ td small {
   color: #fff;
   border: none;
   font-weight: 600;
-  transition: filter 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+  transition:
+    filter 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .btn.btn-save:not(:disabled):hover {
   filter: brightness(1.08);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(22,122,84,0.25);
+  box-shadow: 0 6px 16px rgba(22, 122, 84, 0.25);
 }
 
 .btn.btn-cancel {
@@ -820,7 +868,9 @@ td small {
   color: var(--danger);
   border: 1.5px solid color-mix(in srgb, var(--danger) 40%, transparent);
   font-weight: 600;
-  transition: background 180ms ease, transform 180ms ease;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
 }
 
 .btn.btn-cancel:hover {
@@ -836,7 +886,9 @@ td small {
   border: 1.5px solid color-mix(in srgb, var(--danger) 35%, transparent);
   padding: 0.38rem 0.65rem;
   font-size: 0.8rem;
-  transition: background 150ms ease, transform 150ms ease;
+  transition:
+    background 150ms ease,
+    transform 150ms ease;
 }
 
 .btn.danger-outline:hover {

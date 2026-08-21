@@ -1,41 +1,68 @@
 <section class="page home-bento">
-  <div class="bento-hero">
-    <div class="bento-hero-bg"></div>
-    <div class="bento-hero-content">
-      <p class="eyebrow">Painel PGE-PA</p>
-      <h1>Gestão do Acervo <br/>&amp; Circulação</h1>
-      <p class="lead">
-        Consulte obras, cadastre usuários e registre empréstimos em um painel unificado, rápido e moderno.
-      </p>
+  <header class="home-heading">
+    <div>
+      <p class="eyebrow">Visão geral · {{ hoje }}</p>
+      <h1>O acervo em movimento.</h1>
+      <p class="lead">Uma leitura rápida do que está disponível, reservado e circulando agora.</p>
     </div>
-  </div>
+  </header>
 
   @if (erro()) {
-    <p class="banner error bento-span-all">{{ erro() }}</p>
+    <p class="banner error">{{ erro() }}</p>
   }
 
-  <div class="bento-stats">
-    @for (item of resumo(); track item.label) {
-      <article class="bento-stat">
-        <div class="bento-stat-glow"></div>
-        <span>{{ item.label }}</span>
-        <strong>{{ carregando() ? '—' : item.value }}</strong>
-      </article>
-    }
-  </div>
+  <div class="dashboard-grid">
+    <section class="hero-panel">
+      <div class="hero-orbit orbit-one"></div>
+      <div class="hero-orbit orbit-two"></div>
+      <div class="hero-content">
+        <p class="eyebrow">Central de operações</p>
+        <h2>Encontre o próximo capítulo.</h2>
+        <p>O essencial fica à vista. Os detalhes aparecem quando você precisa deles.</p>
+        <div class="hero-actions">
+          <a routerLink="/livros" class="btn hero-btn">Explorar acervo <span>↗</span></a>
+          <a routerLink="/emprestimos" class="text-action">Registrar empréstimo <span>→</span></a>
+        </div>
+      </div>
+    </section>
 
-  <div class="bento-shortcuts">
-    @for (atalho of atalhos; track atalho.path) {
-      <a [routerLink]="atalho.path" class="bento-shortcut">
-        <div class="bento-shortcut-glow"></div>
-        <div class="shortcut-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    <div class="stats-grid">
+      @for (item of resumo(); track item.label; let index = $index) {
+        <article class="stat-card">
+          <div class="stat-label">
+            <span>{{ item.label }}</span>
+          </div>
+          <strong>{{ carregando() ? '—' : item.value }}</strong>
+          <small>{{
+            index === 1
+              ? 'Prontos para circular'
+              : index === 3
+                ? 'Em acompanhamento'
+                : 'Registros ativos'
+          }}</small>
+        </article>
+      }
+    </div>
+
+    <section class="quick-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Acesso rápido</p>
+          <h2>Comece por aqui</h2>
         </div>
-        <div class="shortcut-info">
-          <h2>{{ atalho.titulo }}</h2>
-          <p>{{ atalho.texto }}</p>
-        </div>
-      </a>
-    }
+        <span class="section-rule"></span>
+      </div>
+      <div class="shortcut-list">
+        @for (atalho of atalhos; track atalho.path; let index = $index) {
+          <a [routerLink]="atalho.path" class="shortcut-item">
+            <span class="shortcut-copy"
+              ><strong>{{ atalho.titulo }}</strong
+              ><small>{{ atalho.texto }}</small></span
+            >
+            <span class="shortcut-arrow">↗</span>
+          </a>
+        }
+      </div>
+    </section>
   </div>
 </section>

@@ -23,6 +23,9 @@ export class HomeComponent implements OnInit {
   readonly livrosDisponiveis = signal(0);
   readonly totalUsuarios = signal(0);
   readonly emprestimosAtivos = signal(0);
+  readonly hoje = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(
+    new Date(),
+  );
 
   readonly atalhos = [
     {
@@ -65,7 +68,12 @@ export class HomeComponent implements OnInit {
         this.carregando.set(false);
       },
       error: (err) => {
-        this.erro.set(obterMensagemErro(err, 'Não foi possível carregar o resumo. Verifique se a API está em execução.'));
+        this.erro.set(
+          obterMensagemErro(
+            err,
+            'Não foi possível carregar o resumo. Verifique se a API está em execução.',
+          ),
+        );
         this.carregando.set(false);
       },
     });
