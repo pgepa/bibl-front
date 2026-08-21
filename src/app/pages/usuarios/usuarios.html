@@ -14,84 +14,135 @@
     <p class="banner success">{{ sucesso() }}</p>
   }
 
-  <div class="grid-two">
-    <form class="panel form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h2>{{ editandoId() ? 'Editar usuário' : 'Novo usuário' }}</h2>
-
-      <label>
-        CPF
-        <input formControlName="cpf" type="text" placeholder="Somente números" maxlength="11" />
-      </label>
-
-      <label>
-        Nome
-        <input formControlName="nome" type="text" placeholder="Nome completo" />
-      </label>
-
-      <label>
-        E-mail
-        <input formControlName="email" type="email" placeholder="nome@exemplo.com" />
-      </label>
-
-      <label>
-        Telefone
-        <input formControlName="telefone" type="tel" placeholder="(91) 99999-9999" maxlength="11"/>
-      </label>
-
-      <div class="actions">
-        <button type="submit" class="btn primary" [disabled]="salvando()">
-          {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
-        </button>
-        @if (editandoId()) {
-          <button type="button" class="btn ghost" (click)="cancelarEdicao()">Cancelar</button>
-        }
-      </div>
-    </form>
-
-    <div class="panel">
-      <div class="panel-toolbar">
-        <h2>Consulta</h2>
-        <input
-          type="search"
-          placeholder="Buscar por nome, e-mail ou telefone"
-          [value]="busca()"
-          (input)="busca.set($any($event.target).value)"
-        />
-      </div>
-
-      @if (carregando()) {
-        <p class="empty">Carregando usuários...</p>
-      } @else if (usuariosFiltrados().length === 0) {
-        <p class="empty">Nenhum usuário encontrado.</p>
-      } @else {
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>CPF</th>
-                <th>E-mail</th>
-                <th>Telefone</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (usuario of usuariosFiltrados(); track usuario.id) {
-                <tr>
-                  <td><strong>{{ usuario.nome }}</strong></td>
-                  <td>{{ usuario.cpf }}</td>
-                  <td>{{ usuario.email }}</td>
-                  <td>{{ usuario.telefone }}</td>
-                  <td class="row-actions">
-                    <button type="button" class="btn subtle" (click)="editar(usuario)">Editar</button>
-                    <button type="button" class="btn danger-text" (click)="remover(usuario)">Remover</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </div>
+  <div class="toolbar">
+    <label class="search-field">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.2-3.2" /></svg>
+      <input
+        type="search"
+        placeholder="Buscar por nome, CPF, e-mail ou telefone"
+        [value]="busca()"
+        (input)="onBuscaChange($any($event.target).value)"
+      />
+    </label>
+    <button type="button" class="btn primary new" (click)="abrirNovo()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+      Novo usuário
+    </button>
   </div>
+
+  <div class="tabs">
+    <button type="button" class="tab" [class.active]="filtro() === 'TODOS'" (click)="definirFiltro('TODOS')">
+      Todos <span class="count">{{ usuarios().length }}</span>
+    </button>
+    <button type="button" class="tab" [class.active]="filtro() === 'ATIVO'" (click)="definirFiltro('ATIVO')">
+      Ativos <span class="count">{{ totalAtivos() }}</span>
+    </button>
+    <button type="button" class="tab" [class.active]="filtro() === 'INATIVO'" (click)="definirFiltro('INATIVO')">
+      Inativos <span class="count">{{ totalInativos() }}</span>
+    </button>
+  </div>
+
+  @if (carregando()) {
+    <p class="empty">Carregando usuários...</p>
+  } @else if (usuariosFiltrados().length === 0) {
+    <p class="empty">Nenhum usuário encontrado.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>CPF</th>
+            <th>E-mail</th>
+            <th>Telefone</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuariosPagina(); track usuario.id) {
+            <tr>
+              <td><strong>{{ usuario.nome }}</strong></td>
+              <td>{{ usuario.cpf }}</td>
+              <td>{{ usuario.email }}</td>
+              <td>{{ usuario.telefone }}</td>
+              <td>
+                <span class="badge" [class.ok]="usuario.statusUsuario === 'ATIVO'" [class.warn]="usuario.statusUsuario === 'INATIVO'">
+                  {{ usuario.statusUsuario === 'ATIVO' ? 'Ativo' : 'Inativo' }}
+                </span>
+              </td>
+              <td class="row-actions">
+                <button type="button" class="btn subtle" (click)="editar(usuario)">Editar</button>
+                <button type="button" class="btn danger-text" (click)="remover(usuario)">Remover</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPaginas() > 1) {
+      <div class="pagination">
+        <button type="button" (click)="irParaPagina(pagina() - 1)" [disabled]="pagina() === 1">Anterior</button>
+        @if (paginasVisiveis()[0] > 1) {
+          <button type="button" (click)="irParaPagina(1)">1</button>
+          @if (paginasVisiveis()[0] > 2) {
+            <span class="gap">…</span>
+          }
+        }
+        @for (p of paginasVisiveis(); track p) {
+          <button type="button" [class.active]="p === pagina()" (click)="irParaPagina(p)">{{ p }}</button>
+        }
+        @if (paginasVisiveis()[paginasVisiveis().length - 1] < totalPaginas()) {
+          @if (paginasVisiveis()[paginasVisiveis().length - 1] < totalPaginas() - 1) {
+            <span class="gap">…</span>
+          }
+          <button type="button" (click)="irParaPagina(totalPaginas())">{{ totalPaginas() }}</button>
+        }
+        <button type="button" (click)="irParaPagina(pagina() + 1)" [disabled]="pagina() === totalPaginas()">Seguinte</button>
+      </div>
+    }
+  }
+
+  @if (drawerAberto()) {
+    <div class="drawer-backdrop" (click)="fecharDrawer()"></div>
+    <div class="drawer">
+      <div class="drawer-header">
+        <h2>{{ editandoId() ? 'Editar usuário' : 'Novo usuário' }}</h2>
+        <button type="button" class="drawer-close" (click)="fecharDrawer()" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+      </div>
+      <div class="drawer-body">
+        <form class="form" [formGroup]="form" (ngSubmit)="salvar()">
+          <label>
+            CPF
+            <input formControlName="cpf" type="text" placeholder="Somente números" maxlength="11" />
+          </label>
+
+          <label>
+            Nome
+            <input formControlName="nome" type="text" placeholder="Nome completo" />
+          </label>
+
+          <label>
+            E-mail
+            <input formControlName="email" type="email" placeholder="nome@exemplo.com" />
+          </label>
+
+          <label>
+            Telefone
+            <input formControlName="telefone" type="tel" placeholder="(91) 99999-9999" maxlength="11" />
+          </label>
+
+          <div class="actions">
+            <button type="submit" class="btn primary" [disabled]="salvando()">
+              {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
+            </button>
+            <button type="button" class="btn ghost" (click)="fecharDrawer()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
 </section>

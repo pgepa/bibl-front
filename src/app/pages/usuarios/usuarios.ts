@@ -1,7 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UsuarioService } from '../../services/usuario.service';
 import { Usuario } from '../../models/usuario';
+import { obterMensagemErro } from '../../utils/error.util';
+
+type FiltroStatus = 'TODOS' | 'ATIVO' | 'INATIVO';
 
 @Component({
   selector: 'app-usuarios',
@@ -20,30 +23,81 @@ export class UsuariosComponent implements OnInit {
   readonly sucesso = signal<string | null>(null);
   readonly editandoId = signal<number | null>(null);
   readonly busca = signal('');
+  readonly filtro = signal<FiltroStatus>('TODOS');
+  readonly drawerAberto = signal(false);
+  readonly pagina = signal(1);
+  readonly itensPorPagina = 8;
 
   readonly form = this.fb.nonNullable.group({
     cpf: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     nome: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    telefone: ['', [Validators.required, Validators.pattern(/\d{11}$/)]]
+    telefone: ['', [Validators.required, Validators.pattern(/\d{11}$/)]],
+  });
+
+  readonly totalAtivos = computed(
+    () => this.usuarios().filter((u) => u.statusUsuario === 'ATIVO').length,
+  );
+  readonly totalInativos = computed(
+    () => this.usuarios().filter((u) => u.statusUsuario === 'INATIVO').length,
+  );
+
+  readonly usuariosFiltrados = computed(() => {
+    const termo = this.busca().trim().toLowerCase();
+    const filtro = this.filtro();
+
+    return this.usuarios().filter((usuario) => {
+      const combinaTermo =
+        !termo ||
+        usuario.nome.toLowerCase().includes(termo) ||
+        usuario.cpf.toLowerCase().includes(termo) ||
+        usuario.email.toLowerCase().includes(termo) ||
+        usuario.telefone.toLowerCase().includes(termo);
+
+      const combinaFiltro = filtro === 'TODOS' || usuario.statusUsuario === filtro;
+
+      return combinaTermo && combinaFiltro;
+    });
+  });
+
+  readonly totalPaginas = computed(() =>
+    Math.max(1, Math.ceil(this.usuariosFiltrados().length / this.itensPorPagina)),
+  );
+
+  readonly usuariosPagina = computed(() => {
+    const inicio = (this.pagina() - 1) * this.itensPorPagina;
+    return this.usuariosFiltrados().slice(inicio, inicio + this.itensPorPagina);
+  });
+
+  readonly paginasVisiveis = computed(() => {
+    const total = this.totalPaginas();
+    const atual = this.pagina();
+    const janela = 2;
+    const inicio = Math.max(1, atual - janela);
+    const fim = Math.min(total, atual + janela);
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fim; i++) {
+      paginas.push(i);
+    }
+    return paginas;
   });
 
   ngOnInit(): void {
     this.carregar();
   }
 
-  usuariosFiltrados(): Usuario[] {
-    const termo = this.busca().trim().toLowerCase();
-    if (!termo) {
-      return this.usuarios();
-    }
-    return this.usuarios().filter(
-      (usuario) =>
-        usuario.nome.toLowerCase().includes(termo) ||
-        usuario.cpf.toLowerCase().includes(termo) ||
-        usuario.email.toLowerCase().includes(termo) ||
-        usuario.telefone.toLowerCase().includes(termo),
-    );
+  definirFiltro(filtro: FiltroStatus): void {
+    this.filtro.set(filtro);
+    this.pagina.set(1);
+  }
+
+  onBuscaChange(valor: string): void {
+    this.busca.set(valor);
+    this.pagina.set(1);
+  }
+
+  irParaPagina(pagina: number): void {
+    this.pagina.set(pagina);
   }
 
   carregar(): void {
@@ -53,11 +107,20 @@ export class UsuariosComponent implements OnInit {
         this.usuarios.set(usuarios);
         this.carregando.set(false);
       },
-      error: () => {
-        this.erro.set('Falha ao carregar usuários.');
+      error: (err) => {
+        this.erro.set(obterMensagemErro(err, 'Falha ao carregar usuários.'));
         this.carregando.set(false);
       },
     });
+  }
+
+  abrirNovo(): void {
+    this.editandoId.set(null);
+    this.form.controls.cpf.enable();
+    this.form.reset({ cpf: '', nome: '', email: '', telefone: '' });
+    this.sucesso.set(null);
+    this.erro.set(null);
+    this.drawerAberto.set(true);
   }
 
   editar(usuario: Usuario): void {
@@ -71,12 +134,13 @@ export class UsuariosComponent implements OnInit {
     this.form.controls.cpf.disable();
     this.sucesso.set(null);
     this.erro.set(null);
+    this.drawerAberto.set(true);
   }
 
-  cancelarEdicao(): void {
+  fecharDrawer(): void {
+    this.drawerAberto.set(false);
     this.editandoId.set(null);
     this.form.controls.cpf.enable();
-    this.form.reset({ cpf: '', nome: '', email: '', telefone: '' });
   }
 
   salvar(): void {
@@ -98,12 +162,12 @@ export class UsuariosComponent implements OnInit {
     request$.subscribe({
       next: () => {
         this.sucesso.set(id ? 'Usuário atualizado.' : 'Usuário cadastrado.');
-        this.cancelarEdicao();
         this.salvando.set(false);
+        this.fecharDrawer();
         this.carregar();
       },
       error: (err) => {
-        this.erro.set(err?.error?.mensagem ?? 'Não foi possível salvar o usuário.');
+        this.erro.set(obterMensagemErro(err, 'Não foi possível salvar o usuário.'));
         this.salvando.set(false);
       },
     });
@@ -120,7 +184,7 @@ export class UsuariosComponent implements OnInit {
         this.carregar();
       },
       error: (err) => {
-        this.erro.set(err?.error?.mensagem ?? 'Não foi possível remover o usuário.');
+        this.erro.set(obterMensagemErro(err, 'Não foi possível remover o usuário.'));
       },
     });
   }

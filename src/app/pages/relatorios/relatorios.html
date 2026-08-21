@@ -1,0 +1,47 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Métricas</p>
+      <h1>Relatórios</h1>
+      <p class="lead">Visão geral e estatísticas de circulação do acervo.</p>
+    </div>
+  </header>
+
+  @if (erro()) {
+    <p class="banner error">{{ erro() }}</p>
+  }
+
+  <div class="toolbar">
+    <button type="button" class="btn primary" (click)="carregar()" [disabled]="carregando()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="16" height="16"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+      Atualizar dados
+    </button>
+  </div>
+
+  @if (carregando()) {
+    <p class="empty">Gerando relatório...</p>
+  } @else if (relatorio()) {
+    <div class="bento-stats">
+      <article class="bento-stat">
+        <div class="bento-stat-glow"></div>
+        <span>Total de Empréstimos</span>
+        <strong>{{ relatorio()!.emprestimosTotais }}</strong>
+      </article>
+      <article class="bento-stat">
+        <div class="bento-stat-glow"></div>
+        <span>Empréstimos Ativos</span>
+        <strong>{{ relatorio()!.emprestimosAtivos }}</strong>
+      </article>
+      <article class="bento-stat">
+        <div class="bento-stat-glow"></div>
+        <span>Concluídos / Devolvidos</span>
+        <strong>{{ relatorio()!.emprestimosConluidos }}</strong>
+      </article>
+      <article class="bento-stat">
+        <div class="bento-stat-glow" style="background: radial-gradient(circle at top left, rgba(220, 38, 38, 0.08) 0%, transparent 50%);"></div>
+        <span>Atrasados</span>
+        <strong style="color: var(--danger)">{{ relatorio()!.emprestimosAtrasados }}</strong>
+      </article>
+    </div>
+  }
+</section>

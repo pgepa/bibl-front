@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { AbstractControl, FormBuilder, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { EmprestimoService } from '../../services/emprestimo.service';
@@ -8,7 +8,9 @@ import { UsuarioService } from '../../services/usuario.service';
 import { Emprestimo } from '../../models/emprestimo';
 import { Livro } from '../../models/livro';
 import { Usuario } from '../../models/usuario';
-import {AbstractControl, ValidationErrors} from '@angular/forms';
+import { obterMensagemErro } from '../../utils/error.util';
+
+type FiltroStatus = 'TODOS' | 'ATIVO' | 'ATRASADO' | 'CONCLUIDO';
 
 @Component({
   selector: 'app-emprestimos',
@@ -28,9 +30,14 @@ export class EmprestimosComponent implements OnInit {
   readonly carregando = signal(true);
   readonly salvando = signal(false);
   readonly devolvendoId = signal<number | null>(null);
+  readonly renovandoId = signal<number | null>(null);
   readonly erro = signal<string | null>(null);
   readonly sucesso = signal<string | null>(null);
-  readonly filtroStatus = signal<'TODOS' | 'ATIVO' | 'CONCLUIDO'>('TODOS');
+  readonly filtroStatus = signal<FiltroStatus>('TODOS');
+  readonly busca = signal('');
+  readonly drawerAberto = signal(false);
+  readonly pagina = signal(1);
+  readonly itensPorPagina = 8;
 
   readonly buscaLivro = signal('');
   readonly buscaUsuario = signal('');
@@ -43,15 +50,15 @@ export class EmprestimosComponent implements OnInit {
     return data.toISOString().slice(0, 10);
   }
 
-  private dataNaoPassadaValidator(control: AbstractControl) : ValidationErrors | null{
-    if(!control.value){
+  private dataNaoPassadaValidator(control: AbstractControl): ValidationErrors | null {
+    if (!control.value) {
       return null;
     }
 
-    return control.value < this.hoje ? {dataPassada: true} : null;
+    return control.value < this.hoje ? { dataPassada: true } : null;
   }
 
-  readonly hoje = new Date().toISOString().slice(0,10);
+  readonly hoje = new Date().toISOString().slice(0, 10);
 
   readonly form = this.fb.nonNullable.group({
     livroId: [0, [Validators.required, Validators.min(1)]],
@@ -59,19 +66,53 @@ export class EmprestimosComponent implements OnInit {
     dataPrevistaDevolucao: [this.prazoPadrao(), [Validators.required, this.dataNaoPassadaValidator.bind(this)]],
   });
 
-  ngOnInit(): void {
-    this.carregar();
-  }
+  readonly totalAtivos = computed(
+    () => this.emprestimos().filter((e) => e.statusEmprestimo === 'ATIVO').length,
+  );
+  readonly totalAtrasados = computed(
+    () => this.emprestimos().filter((e) => e.statusEmprestimo === 'ATRASADO').length,
+  );
+  readonly totalConcluidos = computed(
+    () => this.emprestimos().filter((e) => e.statusEmprestimo === 'CONCLUIDO').length,
+  );
 
-  emprestimosFiltrados(): Emprestimo[] {
+  readonly emprestimosFiltrados = computed(() => {
     const filtro = this.filtroStatus();
-    if (filtro === 'TODOS') {
-      return this.emprestimos();
-    }
-    return this.emprestimos().filter((item) => item.statusEmprestimo === filtro);
-  }
+    const termo = this.busca().trim().toLowerCase();
 
-  livrosFiltrados(): Livro[] {
+    return this.emprestimos().filter((item) => {
+      const combinaFiltro = filtro === 'TODOS' || item.statusEmprestimo === filtro;
+      const combinaTermo =
+        !termo ||
+        item.livro.titulo.toLowerCase().includes(termo) ||
+        item.usuario.nome.toLowerCase().includes(termo);
+      return combinaFiltro && combinaTermo;
+    });
+  });
+
+  readonly totalPaginas = computed(() =>
+    Math.max(1, Math.ceil(this.emprestimosFiltrados().length / this.itensPorPagina)),
+  );
+
+  readonly emprestimosPagina = computed(() => {
+    const inicio = (this.pagina() - 1) * this.itensPorPagina;
+    return this.emprestimosFiltrados().slice(inicio, inicio + this.itensPorPagina);
+  });
+
+  readonly paginasVisiveis = computed(() => {
+    const total = this.totalPaginas();
+    const atual = this.pagina();
+    const janela = 2;
+    const inicio = Math.max(1, atual - janela);
+    const fim = Math.min(total, atual + janela);
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fim; i++) {
+      paginas.push(i);
+    }
+    return paginas;
+  });
+
+  readonly livrosFiltrados = computed(() => {
     const termo = this.buscaLivro().trim().toLowerCase();
     const lista = this.livrosDisponiveis();
     if (!termo) {
@@ -83,9 +124,9 @@ export class EmprestimosComponent implements OnInit {
         livro.autor.toLowerCase().includes(termo) ||
         livro.isbn.toLowerCase().includes(termo),
     );
-  }
+  });
 
-  usuariosFiltrados(): Usuario[] {
+  readonly usuariosFiltrados = computed(() => {
     const termo = this.buscaUsuario().trim().toLowerCase();
     const lista = this.usuarios();
     if (!termo) {
@@ -97,6 +138,24 @@ export class EmprestimosComponent implements OnInit {
         usuario.cpf.toLowerCase().includes(termo) ||
         usuario.email.toLowerCase().includes(termo),
     );
+  });
+
+  ngOnInit(): void {
+    this.carregar();
+  }
+
+  definirFiltro(filtro: FiltroStatus): void {
+    this.filtroStatus.set(filtro);
+    this.pagina.set(1);
+  }
+
+  onBuscaChange(valor: string): void {
+    this.busca.set(valor);
+    this.pagina.set(1);
+  }
+
+  irParaPagina(pagina: number): void {
+    this.pagina.set(pagina);
   }
 
   onBuscaLivroChange(valor: string): void {
@@ -148,11 +207,24 @@ export class EmprestimosComponent implements OnInit {
         this.usuarios.set(usuarios);
         this.carregando.set(false);
       },
-      error: () => {
-        this.erro.set('Falha ao carregar empréstimos.');
+      error: (err) => {
+        this.erro.set(obterMensagemErro(err, 'Falha ao carregar empréstimos.'));
         this.carregando.set(false);
       },
     });
+  }
+
+  abrirNovo(): void {
+    this.form.reset({ livroId: 0, usuarioId: 0, dataPrevistaDevolucao: this.prazoPadrao() });
+    this.buscaLivro.set('');
+    this.buscaUsuario.set('');
+    this.sucesso.set(null);
+    this.erro.set(null);
+    this.drawerAberto.set(true);
+  }
+
+  fecharDrawer(): void {
+    this.drawerAberto.set(false);
   }
 
   realizar(): void {
@@ -169,14 +241,12 @@ export class EmprestimosComponent implements OnInit {
     this.emprestimoService.realizar(payload).subscribe({
       next: () => {
         this.sucesso.set('Empréstimo registrado.');
-        this.form.reset({ livroId: 0, usuarioId: 0, dataPrevistaDevolucao: this.prazoPadrao() });
-        this.buscaLivro.set('');
-        this.buscaUsuario.set('');
         this.salvando.set(false);
+        this.fecharDrawer();
         this.carregar();
       },
       error: (err) => {
-        this.erro.set(err?.error?.mensagem ?? 'Não foi possível registrar o empréstimo.');
+        this.erro.set(obterMensagemErro(err, 'Não foi possível registrar o empréstimo.'));
         this.salvando.set(false);
       },
     });
@@ -193,13 +263,32 @@ export class EmprestimosComponent implements OnInit {
 
     this.emprestimoService.devolver(emprestimo.id).subscribe({
       next: () => {
+        
         this.sucesso.set('Devolução registrada.');
         this.devolvendoId.set(null);
         this.carregar();
       },
       error: (err) => {
-        this.erro.set(err?.error?.mensagem ?? 'Não foi possível registrar a devolução.');
+        this.erro.set(obterMensagemErro(err, 'Não foi possível registrar a devolução.'));
         this.devolvendoId.set(null);
+      },
+    });
+  }
+
+  renovar(emprestimo: Emprestimo): void {
+    this.renovandoId.set(emprestimo.id);
+    this.erro.set(null);
+    this.sucesso.set(null);
+
+    this.emprestimoService.renovar(emprestimo.id).subscribe({
+      next: () => {
+        this.sucesso.set('Empréstimo renovado.');
+        this.renovandoId.set(null);
+        this.carregar();
+      },
+      error: (err) => {
+        this.erro.set(obterMensagemErro(err, 'Não foi possível renovar o empréstimo.'));
+        this.renovandoId.set(null);
       },
     });
   }

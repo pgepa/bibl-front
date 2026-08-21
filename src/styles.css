@@ -3,18 +3,21 @@
 :root {
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Manrope', 'Segoe UI', sans-serif;
-  --deep: #1a7a5e;
-  --accent: #6fd9ae;
-  --accent-deep: #22986f;
-  --ink: #152325;
-  --ink-on-deep: #f2fbf6;
-  --muted: #5c6f72;
-  --surface: #eefaf4;
-  --line: #d4ede1;
+  --deep: #0e4c34;
+  --accent: #4fb98b;
+  --accent-deep: #167a54;
+  --ink: #101c18;
+  --ink-on-deep: #ffffff;
+  --muted: #6b7e77;
+  --surface: #f1f7f5;
+  --line: #d8e5e0;
   --danger: #b42318;
   --ok: #1f9d63;
   --warn: #9a6700;
-  --shadow-soft: 0 10px 30px rgba(26, 122, 94, 0.08);
+  --info: #2563a8;
+  --shadow-soft: 0 8px 24px rgba(20, 60, 48, 0.06);
+  --shadow-lift: 0 18px 40px rgba(20, 60, 48, 0.14);
+  --radius: 0.85rem;
 }
 
 *,
@@ -32,11 +35,7 @@ body {
 body {
   font-family: var(--font-body);
   color: var(--ink);
-  background:
-    radial-gradient(circle at 88% 8%, rgba(111, 217, 174, 0.16), transparent 28%),
-    radial-gradient(circle at 12% 90%, rgba(26, 122, 94, 0.1), transparent 26%),
-    var(--surface);
-  background-attachment: fixed;
+  background: var(--surface);
 }
 
 button,
@@ -45,34 +44,39 @@ select {
   font: inherit;
 }
 
+/* ---------- Page header ---------- */
+
 .page-header {
-  margin-bottom: 1.25rem;
-  animation: rise 420ms ease both;
+  margin-bottom: 1.1rem;
+  animation: rise 360ms ease both;
 }
 
 .page-header h1 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-size: clamp(1.55rem, 2.4vw, 1.95rem);
   font-weight: 500;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 
 .eyebrow {
-  margin: 0 0 0.4rem;
-  font-size: 0.78rem;
+  margin: 0 0 0.3rem;
+  font-size: 0.72rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent-deep);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .lead {
-  margin: 0.5rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--muted);
-  max-width: 38rem;
+  max-width: 40rem;
   line-height: 1.5;
+  font-size: 0.92rem;
 }
+
+/* ---------- Minimalist single-column page shell ---------- */
 
 .grid-two {
   display: grid;
@@ -82,17 +86,17 @@ select {
 }
 
 .panel {
-  background: rgba(255, 255, 255, 0.8);
+  background: #fff;
   border: 1px solid var(--line);
-  border-radius: 1.1rem;
-  padding: 1.15rem;
+  border-radius: var(--radius);
+  padding: 1.1rem;
   box-shadow: var(--shadow-soft);
-  animation: rise 520ms ease both;
+  animation: rise 420ms ease both;
 }
 
 .panel h2 {
   margin: 0 0 1rem;
-  font-size: 1.05rem;
+  font-size: 1rem;
 }
 
 .panel-toolbar {
@@ -112,38 +116,138 @@ select {
   min-width: min(100%, 260px);
 }
 
-.form {
-  display: grid;
-  gap: 0.85rem;
+/* ---------- Top horizontal search toolbar (main page action bar) ---------- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
 }
 
-.form label {
-  display: grid;
-  gap: 0.35rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--ink);
+.search-field {
+  position: relative;
+  flex: 1 1 320px;
+  display: flex;
+  align-items: center;
 }
 
-.form input,
-.form select,
-.panel-toolbar input {
+.search-field svg {
+  position: absolute;
+  left: 0.85rem;
+  width: 17px;
+  height: 17px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.search-field input[type='search'],
+.search-field input[type='text'] {
   width: 100%;
+  padding: 0.72rem 0.9rem 0.72rem 2.5rem;
+  border-radius: 999px;
   border: 1px solid var(--line);
-  border-radius: 0.7rem;
-  padding: 0.7rem 0.8rem;
   background: #fff;
-  color: var(--ink);
   outline: none;
+  font-size: 0.92rem;
   transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.form input:focus,
-.form select:focus,
-.panel-toolbar input:focus {
+.search-field input:focus {
   border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
-  box-shadow: 0 0 0 3px rgba(111, 217, 174, 0.22);
+  box-shadow: 0 0 0 3px rgba(111, 217, 174, 0.2);
 }
+
+.toolbar .btn.new {
+  flex-shrink: 0;
+}
+
+/* ---------- Segmented tabs (filters within a page) ---------- */
+
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  background: color-mix(in srgb, var(--surface) 30%, #fff);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  width: max-content;
+  max-width: 100%;
+  margin-bottom: 1.25rem;
+  box-shadow: inset 0 2px 5px rgba(20, 60, 48, 0.03), 0 4px 12px rgba(20, 60, 48, 0.04);
+  overflow-x: auto;
+  position: relative;
+  scrollbar-width: none;
+  animation: rise 350ms ease both;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tab svg {
+  transition: transform 300ms ease;
+}
+
+.tab:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.tab:hover svg {
+  transform: scale(1.1);
+}
+
+.tab:active {
+  transform: scale(0.96);
+}
+
+.tab.active {
+  background: var(--deep);
+  color: #fff;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--deep) 35%, transparent);
+  transform: translateY(-1px);
+}
+
+.tab .count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink);
+  transition: all 300ms ease;
+}
+
+.tab.active .count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+/* ---------- Buttons ---------- */
 
 .actions,
 .row-actions {
@@ -158,6 +262,10 @@ select {
   padding: 0.65rem 0.95rem;
   cursor: pointer;
   font-weight: 600;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   transition: transform 140ms ease, background 140ms ease, border-color 140ms ease;
 }
 
@@ -167,12 +275,18 @@ select {
 }
 
 .btn:not(:disabled):hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(22, 122, 84, 0.12);
 }
 
 .btn.primary {
   background: var(--deep);
   color: #fff;
+}
+
+.btn.primary:not(:disabled):hover {
+  background: var(--accent-deep);
+  box-shadow: 0 8px 20px rgba(22, 122, 84, 0.25);
 }
 
 .btn.ghost {
@@ -186,18 +300,23 @@ select {
   color: var(--accent-deep);
   border-color: color-mix(in srgb, var(--accent) 25%, var(--line));
   padding: 0.4rem 0.7rem;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
 .btn.danger-text {
   background: transparent;
   color: var(--danger);
   padding: 0.4rem 0.55rem;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
+
+/* ---------- Table ---------- */
 
 .table-wrap {
   overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
 }
 
 table {
@@ -208,17 +327,40 @@ table {
 th,
 td {
   text-align: left;
-  padding: 0.75rem 0.55rem;
+  padding: 0.75rem 0.85rem;
   border-bottom: 1px solid var(--line);
   vertical-align: top;
 }
 
+thead th {
+  position: sticky;
+  top: 0;
+  background: #f4f9f6;
+  z-index: 1;
+}
+
 th {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
-  font-weight: 600;
+  font-weight: 700;
+}
+
+tbody tr {
+  transition: background 120ms ease;
+}
+
+tbody tr:nth-child(even) {
+  background: #fafcfb;
+}
+
+tbody tr:hover {
+  background: color-mix(in srgb, var(--accent) 8%, white);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
 }
 
 td strong {
@@ -229,18 +371,21 @@ td small {
   display: block;
   margin-top: 0.15rem;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
+
+/* ---------- Badges ---------- */
 
 .badge {
   display: inline-flex;
   align-items: center;
   border-radius: 999px;
   padding: 0.22rem 0.65rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   background: #edf1f0;
   color: var(--muted);
+  white-space: nowrap;
 }
 
 .badge.ok {
@@ -253,12 +398,24 @@ td small {
   color: var(--warn);
 }
 
+.badge.danger {
+  background: color-mix(in srgb, var(--danger) 12%, white);
+  color: var(--danger);
+}
+
+.badge.info {
+  background: color-mix(in srgb, var(--info) 12%, white);
+  color: var(--info);
+}
+
+/* ---------- Banners / empty states ---------- */
+
 .banner {
-  padding: 0.8rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 0.8rem;
   margin: 0 0 1rem;
-  font-size: 0.92rem;
-  animation: rise 300ms ease both;
+  font-size: 0.88rem;
+  animation: rise 260ms ease both;
 }
 
 .banner.error {
@@ -276,13 +433,184 @@ td small {
 .empty {
   margin: 0;
   color: var(--muted);
-  padding: 0.5rem 0;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+/* ---------- Pagination ---------- */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-top: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 0.6rem;
+  min-width: 2.15rem;
+  height: 2.15rem;
+  padding: 0 0.55rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.pagination button.active {
+  background: var(--deep);
+  border-color: var(--deep);
+  color: #fff;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination .gap {
+  color: var(--muted);
+  padding: 0 0.15rem;
+}
+
+/* ---------- Drawer / modal form ---------- */
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 76, 52, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 80;
+  animation: fade 180ms ease both;
+}
+
+.drawer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  max-height: 90vh;
+  width: min(560px, 92vw);
+  background: #fff;
+  z-index: 81;
+  box-shadow: 0 24px 60px rgba(14, 76, 52, 0.2);
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.1rem;
+  overflow: hidden;
+  animation: popIn 250ms cubic-bezier(0.175, 0.885, 0.32, 1.1) both;
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.drawer-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.drawer-close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 0.5rem;
+  line-height: 0;
+}
+
+.drawer-close:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.drawer-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------- Form ---------- */
+
+.form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.form input,
+.form select,
+.panel-toolbar input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  padding: 0.68rem 0.8rem;
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.form input:focus,
+.form select:focus,
+.panel-toolbar input:focus {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: 0 0 0 3px rgba(111, 217, 174, 0.22);
+}
+
+.hint {
+  margin: -0.4rem 0 0;
+  font-size: 0.8rem;
+  color: var(--danger);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.27) both;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -293,5 +621,11 @@ td small {
 @media (max-width: 960px) {
   .grid-two {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .drawer {
+    width: 100vw;
   }
 }

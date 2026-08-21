@@ -1,7 +1,7 @@
 import { Livro } from './livro';
 import { Usuario } from './usuario';
 
-export type StatusEmprestimo = 'ATIVO' | 'CONCLUIDO';
+export type StatusEmprestimo = 'ATIVO' | 'CONCLUIDO' | 'ATRASADO';
 
 export interface Emprestimo {
   id: number;
@@ -11,6 +11,7 @@ export interface Emprestimo {
   dataPrevistaDevolucao: string;
   dataDevolucao: string | null;
   statusEmprestimo: StatusEmprestimo;
+  quantidadeRenovacaoEmprestimo?: number;
 }
 
 export interface EmprestimoPayload {

@@ -1,7 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LivroService } from '../../services/livro.service';
 import { Livro } from '../../models/livro';
+import { obterMensagemErro } from '../../utils/error.util';
+
+type FiltroDisponibilidade = 'TODOS' | 'DISPONIVEL' | 'EMPRESTADO';
 
 @Component({
   selector: 'app-livros',
@@ -20,6 +23,17 @@ export class LivrosComponent implements OnInit {
   readonly sucesso = signal<string | null>(null);
   readonly editandoId = signal<number | null>(null);
   readonly busca = signal('');
+  readonly filtro = signal<FiltroDisponibilidade>('TODOS');
+  readonly drawerAberto = signal(false);
+  
+  readonly colunasVisiveis = signal({
+    autor: true,
+    anoLancamento: true,
+    status: true,
+    isbn: true
+  });
+  readonly pagina = signal(1);
+  readonly itensPorPagina = 8;
   readonly anoAtual = new Date().getFullYear();
 
   readonly form = this.fb.nonNullable.group({
@@ -32,21 +46,75 @@ export class LivrosComponent implements OnInit {
     ],
   });
 
+  readonly totalDisponiveis = computed(
+    () => this.livros().filter((l) => l.disponivel).length,
+  );
+  readonly totalEmprestados = computed(
+    () => this.livros().filter((l) => !l.disponivel).length,
+  );
+
+  readonly livrosFiltrados = computed(() => {
+    const termo = this.busca().trim().toLowerCase();
+    const filtro = this.filtro();
+
+    return this.livros().filter((livro) => {
+      const combinaTermo =
+        !termo ||
+        livro.titulo.toLowerCase().includes(termo) ||
+        livro.autor.toLowerCase().includes(termo) ||
+        livro.isbn.toLowerCase().includes(termo);
+
+      const combinaFiltro =
+        filtro === 'TODOS' ||
+        (filtro === 'DISPONIVEL' && livro.disponivel) ||
+        (filtro === 'EMPRESTADO' && !livro.disponivel);
+
+      return combinaTermo && combinaFiltro;
+    });
+  });
+
+  readonly totalPaginas = computed(() =>
+    Math.max(1, Math.ceil(this.livrosFiltrados().length / this.itensPorPagina)),
+  );
+
+  readonly livrosPagina = computed(() => {
+    const inicio = (this.pagina() - 1) * this.itensPorPagina;
+    return this.livrosFiltrados().slice(inicio, inicio + this.itensPorPagina);
+  });
+
+  readonly paginasVisiveis = computed(() => {
+    const total = this.totalPaginas();
+    const atual = this.pagina();
+    const janela = 2;
+    const inicio = Math.max(1, atual - janela);
+    const fim = Math.min(total, atual + janela);
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fim; i++) {
+      paginas.push(i);
+    }
+    return paginas;
+  });
+
   ngOnInit(): void {
     this.carregar();
   }
 
-  livrosFiltrados(): Livro[] {
-    const termo = this.busca().trim().toLowerCase();
-    if (!termo) {
-      return this.livros();
-    }
-    return this.livros().filter(
-      (livro) =>
-        livro.titulo.toLowerCase().includes(termo) ||
-        livro.autor.toLowerCase().includes(termo) ||
-        livro.isbn.toLowerCase().includes(termo),
-    );
+  definirFiltro(filtro: FiltroDisponibilidade): void {
+    this.filtro.set(filtro);
+    this.pagina.set(1);
+  }
+
+  toggleColuna(coluna: 'autor' | 'anoLancamento' | 'status' | 'isbn'): void {
+    this.colunasVisiveis.update((c) => ({ ...c, [coluna]: !c[coluna] }));
+  }
+
+  onBuscaChange(valor: string): void {
+    this.busca.set(valor);
+    this.pagina.set(1);
+  }
+
+  irParaPagina(pagina: number): void {
+    this.pagina.set(pagina);
   }
 
   carregar(): void {
@@ -56,11 +124,24 @@ export class LivrosComponent implements OnInit {
         this.livros.set(livros);
         this.carregando.set(false);
       },
-      error: () => {
-        this.erro.set('Falha ao carregar livros.');
+      error: (err) => {
+        this.erro.set(obterMensagemErro(err, 'Falha ao carregar livros.'));
         this.carregando.set(false);
       },
     });
+  }
+
+  abrirNovo(): void {
+    this.editandoId.set(null);
+    this.form.reset({
+      titulo: '',
+      autor: '',
+      isbn: '',
+      anoLancamento: this.anoAtual,
+    });
+    this.sucesso.set(null);
+    this.erro.set(null);
+    this.drawerAberto.set(true);
   }
 
   editar(livro: Livro): void {
@@ -73,16 +154,12 @@ export class LivrosComponent implements OnInit {
     });
     this.sucesso.set(null);
     this.erro.set(null);
+    this.drawerAberto.set(true);
   }
 
-  cancelarEdicao(): void {
+  fecharDrawer(): void {
+    this.drawerAberto.set(false);
     this.editandoId.set(null);
-    this.form.reset({
-      titulo: '',
-      autor: '',
-      isbn: '',
-      anoLancamento: this.anoAtual,
-    });
   }
 
   salvar(): void {
@@ -104,12 +181,12 @@ export class LivrosComponent implements OnInit {
     request$.subscribe({
       next: () => {
         this.sucesso.set(id ? 'Livro atualizado.' : 'Livro cadastrado.');
-        this.cancelarEdicao();
         this.salvando.set(false);
+        this.fecharDrawer();
         this.carregar();
       },
       error: (err) => {
-        this.erro.set(err?.error?.mensagem ?? 'Não foi possível salvar o livro.');
+        this.erro.set(obterMensagemErro(err, 'Não foi possível salvar o livro.'));
         this.salvando.set(false);
       },
     });
@@ -126,7 +203,7 @@ export class LivrosComponent implements OnInit {
         this.carregar();
       },
       error: (err) => {
-        this.erro.set(err?.error?.mensagem ?? 'Não foi possível remover o livro.');
+        this.erro.set(obterMensagemErro(err, 'Não foi possível remover o livro.'));
       },
     });
   }

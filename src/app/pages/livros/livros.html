@@ -14,94 +14,171 @@
     <p class="banner success">{{ sucesso() }}</p>
   }
 
-  <div class="grid-two">
-    <form class="panel form" [formGroup]="form" (ngSubmit)="salvar()">
-      <h2>{{ editandoId() ? 'Editar livro' : 'Novo livro' }}</h2>
-
-      <label>
-        Título
-        <input formControlName="titulo" type="text" placeholder="Ex.: Dom Casmurro" />
-      </label>
-
-      <label>
-        Autor
-        <input formControlName="autor" type="text" placeholder="Ex.: Machado de Assis" />
-      </label>
-
-      <label>
-        ISBN
-        <input formControlName="isbn" type="text" placeholder="Ex.: 9788535914849" />
-      </label>
-
-      <label>
-        Ano de lançamento
-        <input formControlName="anoLancamento" type="number" min="1" [max]="anoAtual" />
-      </label>
-      @if (form.controls.anoLancamento.hasError('max')) {
-        <p class="hint">Não é possível cadastrar um ano posterior a {{ anoAtual }}.</p>
-      }
-
-      <div class="actions">
-        <button type="submit" class="btn primary" [disabled]="salvando()">
-          {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
-        </button>
-        @if (editandoId()) {
-          <button type="button" class="btn ghost" (click)="cancelarEdicao()">Cancelar</button>
-        }
-      </div>
-    </form>
-
-    <div class="panel">
-      <div class="panel-toolbar">
-        <h2>Consulta</h2>
-        <input
-          type="search"
-          placeholder="Buscar por título, autor ou ISBN"
-          [value]="busca()"
-          (input)="busca.set($any($event.target).value)"
-        />
-      </div>
-
-      @if (carregando()) {
-        <p class="empty">Carregando livros...</p>
-      } @else if (livrosFiltrados().length === 0) {
-        <p class="empty">Nenhum livro encontrado.</p>
-      } @else {
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Título</th>
-                <th>Autor</th>
-                <th>Ano</th>
-                <th>Status</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (livro of livrosFiltrados(); track livro.id) {
-                <tr>
-                  <td>
-                    <strong>{{ livro.titulo }}</strong>
-                    <small>{{ livro.isbn }}</small>
-                  </td>
-                  <td>{{ livro.autor }}</td>
-                  <td>{{ livro.anoLancamento }}</td>
-                  <td>
-                    <span class="badge" [class.ok]="livro.disponivel" [class.warn]="!livro.disponivel">
-                      {{ livro.disponivel ? 'Disponível' : 'Emprestado' }}
-                    </span>
-                  </td>
-                  <td class="row-actions">
-                    <button type="button" class="btn subtle" (click)="editar(livro)">Editar</button>
-                    <button type="button" class="btn danger-text" (click)="remover(livro)">Remover</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </div>
+  <div class="toolbar">
+    <label class="search-field">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.2-3.2" /></svg>
+      <input
+        type="search"
+        placeholder="Buscar por título, autor ou ISBN"
+        [value]="busca()"
+        (input)="onBuscaChange($any($event.target).value)"
+      />
+    </label>
+    <button type="button" class="btn primary new" (click)="abrirNovo()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
+      Novo livro
+    </button>
   </div>
+
+  <div class="tabs">
+    <button type="button" class="tab" [class.active]="filtro() === 'TODOS'" (click)="definirFiltro('TODOS')">
+      Todos <span class="count">{{ livros().length }}</span>
+    </button>
+    <button type="button" class="tab" [class.active]="filtro() === 'DISPONIVEL'" (click)="definirFiltro('DISPONIVEL')">
+      Disponíveis <span class="count">{{ totalDisponiveis() }}</span>
+    </button>
+    <button type="button" class="tab" [class.active]="filtro() === 'EMPRESTADO'" (click)="definirFiltro('EMPRESTADO')">
+      Emprestados <span class="count">{{ totalEmprestados() }}</span>
+    </button>
+  </div>
+
+  <div class="column-toggles" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem; font-size: 0.85rem; flex-wrap: wrap; background: #fff; padding: 0.65rem 1rem; border-radius: var(--radius); border: 1px solid var(--line); width: max-content; max-width: 100%;">
+    <span style="font-weight: 700; color: var(--muted); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em;">Colunas:</span>
+    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
+      <input type="checkbox" [checked]="colunasVisiveis().autor" (change)="toggleColuna('autor')"> Autor
+    </label>
+    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
+      <input type="checkbox" [checked]="colunasVisiveis().anoLancamento" (change)="toggleColuna('anoLancamento')"> Ano
+    </label>
+    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
+      <input type="checkbox" [checked]="colunasVisiveis().status" (change)="toggleColuna('status')"> Status
+    </label>
+    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
+      <input type="checkbox" [checked]="colunasVisiveis().isbn" (change)="toggleColuna('isbn')"> ISBN
+    </label>
+  </div>
+
+  @if (carregando()) {
+    <p class="empty">Carregando livros...</p>
+  } @else if (livrosFiltrados().length === 0) {
+    <p class="empty">Nenhum livro encontrado.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Título</th>
+            @if (colunasVisiveis().autor) { <th>Autor</th> }
+            @if (colunasVisiveis().anoLancamento) { <th>Ano</th> }
+            @if (colunasVisiveis().status) { <th>Status</th> }
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (livro of livrosPagina(); track livro.id) {
+            <tr>
+              <td>
+                <strong>{{ livro.titulo }}</strong>
+                @if (colunasVisiveis().isbn) {
+                  <small>{{ livro.isbn }}</small>
+                }
+              </td>
+              @if (colunasVisiveis().autor) { <td>{{ livro.autor }}</td> }
+              @if (colunasVisiveis().anoLancamento) { <td>{{ livro.anoLancamento }}</td> }
+              @if (colunasVisiveis().status) {
+              <td>
+                <span class="badge" [class.ok]="livro.disponivel" [class.warn]="!livro.disponivel">
+                  {{ livro.disponivel ? 'Disponível' : 'Emprestado' }}
+                </span>
+              </td>
+              }
+              <td class="row-actions">
+                <button type="button" class="btn subtle" (click)="editar(livro)">Editar</button>
+                <button type="button" class="btn danger-text" (click)="remover(livro)">Remover</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPaginas() > 1) {
+      <div class="pagination">
+        <button type="button" (click)="irParaPagina(pagina() - 1)" [disabled]="pagina() === 1">Anterior</button>
+        @if (paginasVisiveis()[0] > 1) {
+          <button type="button" (click)="irParaPagina(1)">1</button>
+          @if (paginasVisiveis()[0] > 2) {
+            <span class="gap">…</span>
+          }
+        }
+        @for (p of paginasVisiveis(); track p) {
+          <button type="button" [class.active]="p === pagina()" (click)="irParaPagina(p)">{{ p }}</button>
+        }
+        @if (paginasVisiveis()[paginasVisiveis().length - 1] < totalPaginas()) {
+          @if (paginasVisiveis()[paginasVisiveis().length - 1] < totalPaginas() - 1) {
+            <span class="gap">…</span>
+          }
+          <button type="button" (click)="irParaPagina(totalPaginas())">{{ totalPaginas() }}</button>
+        }
+        <button type="button" (click)="irParaPagina(pagina() + 1)" [disabled]="pagina() === totalPaginas()">Seguinte</button>
+      </div>
+    }
+  }
+
+  @if (drawerAberto()) {
+    <div class="drawer-backdrop" (click)="fecharDrawer()"></div>
+    <div class="drawer">
+      <div class="drawer-header">
+        <h2>{{ editandoId() ? 'Editar livro' : 'Novo livro' }}</h2>
+        <button type="button" class="drawer-close" (click)="fecharDrawer()" aria-label="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+      </div>
+      <div class="drawer-body">
+        <form class="form" [formGroup]="form" (ngSubmit)="salvar()">
+          <label>
+            Título
+            <input formControlName="titulo" type="text" placeholder="Ex.: Dom Casmurro" />
+          </label>
+          @if (form.controls.titulo.invalid && form.controls.titulo.touched) {
+            <p class="hint">O título é obrigatório e deve ter no mínimo 3 caracteres.</p>
+          }
+
+          <label>
+            Autor
+            <input formControlName="autor" type="text" placeholder="Ex.: Machado de Assis" />
+          </label>
+          @if (form.controls.autor.invalid && form.controls.autor.touched) {
+            <p class="hint">O nome do autor é obrigatório.</p>
+          }
+
+          <label>
+            ISBN
+            <input formControlName="isbn" type="text" placeholder="Ex.: 978-85-359" />
+          </label>
+          @if (form.controls.isbn.invalid && form.controls.isbn.touched) {
+            <p class="hint">O ISBN é obrigatório.</p>
+          }
+
+          <label>
+            Ano de lançamento
+            <input formControlName="anoLancamento" type="number" placeholder="Ex.: 1899" />
+          </label>
+          @if (form.controls.anoLancamento.invalid && form.controls.anoLancamento.touched) {
+            <p class="hint">Informe um ano de lançamento válido.</p>
+          }
+          @if (form.controls.anoLancamento.hasError('max')) {
+            <p class="hint">Não é possível cadastrar um ano posterior a {{ anoAtual }}.</p>
+          }
+
+          <div class="actions">
+            <button type="submit" class="btn primary" [disabled]="salvando()">
+              {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
+            </button>
+            <button type="button" class="btn ghost" (click)="fecharDrawer()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
 </section>

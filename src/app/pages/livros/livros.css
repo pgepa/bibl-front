@@ -1,7 +1,1 @@
-/* page-specific spacing handled by global utilities */
-
-.hint {
-  margin: -0.4rem 0 0;
-  font-size: 0.82rem;
-  color: var(--warn);
-}
+/* page-specific overrides only; shared styles live in styles.css */

@@ -4,6 +4,7 @@ import { forkJoin } from 'rxjs';
 import { LivroService } from '../../services/livro.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { EmprestimoService } from '../../services/emprestimo.service';
+import { obterMensagemErro } from '../../utils/error.util';
 
 @Component({
   selector: 'app-home',
@@ -63,8 +64,8 @@ export class HomeComponent implements OnInit {
         );
         this.carregando.set(false);
       },
-      error: () => {
-        this.erro.set('Não foi possível carregar o resumo. Verifique se a API está em execução.');
+      error: (err) => {
+        this.erro.set(obterMensagemErro(err, 'Não foi possível carregar o resumo. Verifique se a API está em execução.'));
         this.carregando.set(false);
       },
     });

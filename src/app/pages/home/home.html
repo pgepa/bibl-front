@@ -1,30 +1,40 @@
-<section class="page home">
-  <div class="hero">
-    <p class="eyebrow">Painel Bibl</p>
-    <h1>Controle do acervo em um só lugar</h1>
-    <p class="lead">
-      Cadastre livros e usuários, registre empréstimos e registre devoluções com o fluxo mínimo do dia a dia.
-    </p>
+<section class="page home-bento">
+  <div class="bento-hero">
+    <div class="bento-hero-bg"></div>
+    <div class="bento-hero-content">
+      <p class="eyebrow">Painel PGE-PA</p>
+      <h1>Gestão do Acervo <br/>&amp; Circulação</h1>
+      <p class="lead">
+        Consulte obras, cadastre usuários e registre empréstimos em um painel unificado, rápido e moderno.
+      </p>
+    </div>
   </div>
 
   @if (erro()) {
-    <p class="banner error">{{ erro() }}</p>
+    <p class="banner error bento-span-all">{{ erro() }}</p>
   }
 
-  <div class="stats">
+  <div class="bento-stats">
     @for (item of resumo(); track item.label) {
-      <article class="stat">
+      <article class="bento-stat">
+        <div class="bento-stat-glow"></div>
         <span>{{ item.label }}</span>
         <strong>{{ carregando() ? '—' : item.value }}</strong>
       </article>
     }
   </div>
 
-  <div class="shortcuts">
+  <div class="bento-shortcuts">
     @for (atalho of atalhos; track atalho.path) {
-      <a [routerLink]="atalho.path" class="shortcut">
-        <h2>{{ atalho.titulo }}</h2>
-        <p>{{ atalho.texto }}</p>
+      <a [routerLink]="atalho.path" class="bento-shortcut">
+        <div class="bento-shortcut-glow"></div>
+        <div class="shortcut-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="shortcut-info">
+          <h2>{{ atalho.titulo }}</h2>
+          <p>{{ atalho.texto }}</p>
+        </div>
       </a>
     }
   </div>

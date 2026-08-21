@@ -22,6 +22,10 @@ export class EmprestimoService {
   }
 
   devolver(id: number): Observable<Emprestimo> {
-    return this.http.post<Emprestimo>(`${this.baseUrl}/${id}/devolver`, {});
+    return this.http.patch<Emprestimo>(`${this.baseUrl}/${id}/devolver`, {});
+  }
+
+  renovar(id: number): Observable<Emprestimo> {
+    return this.http.patch<Emprestimo>(`${this.baseUrl}/${id}/renovar`, {});
   }
 }

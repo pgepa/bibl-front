@@ -1,9 +1,9 @@
 <section class="page">
   <header class="page-header">
     <div>
-      <p class="eyebrow">Circulação</p>
-      <h1>Empréstimos</h1>
-      <p class="lead">Registre saídas, devoluções e renovações de livros do acervo.</p>
+      <p class="eyebrow">Agendamento</p>
+      <h1>Reservas</h1>
+      <p class="lead">Agende a retirada de obras para os usuários.</p>
     </div>
   </header>
 
@@ -26,90 +26,59 @@
     </label>
     <button type="button" class="btn primary new" (click)="abrirNovo()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
-      Novo empréstimo
+      Nova reserva
     </button>
   </div>
 
   <div class="tabs">
     <button type="button" class="tab" [class.active]="filtroStatus() === 'TODOS'" (click)="definirFiltro('TODOS')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-      Todos <span class="count">{{ emprestimos().length }}</span>
+      Todos <span class="count">{{ reservas().length }}</span>
     </button>
-    <button type="button" class="tab" [class.active]="filtroStatus() === 'ATIVO'" (click)="definirFiltro('ATIVO')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-      Ativos <span class="count">{{ totalAtivos() }}</span>
+    <button type="button" class="tab" [class.active]="filtroStatus() === 'AGUARDANDO'" (click)="definirFiltro('AGUARDANDO')">
+      Aguardando <span class="count">{{ totalAguardando() }}</span>
     </button>
-    <button type="button" class="tab" [class.active]="filtroStatus() === 'ATRASADO'" (click)="definirFiltro('ATRASADO')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-      Atrasados <span class="count">{{ totalAtrasados() }}</span>
+    <button type="button" class="tab" [class.active]="filtroStatus() === 'CONCLUIDA'" (click)="definirFiltro('CONCLUIDA')">
+      Concluídas <span class="count">{{ totalConcluidas() }}</span>
     </button>
-    <button type="button" class="tab" [class.active]="filtroStatus() === 'CONCLUIDO'" (click)="definirFiltro('CONCLUIDO')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-      Devolvidos <span class="count">{{ totalConcluidos() }}</span>
+    <button type="button" class="tab" [class.active]="filtroStatus() === 'CANCELADO'" (click)="definirFiltro('CANCELADO')">
+      Canceladas <span class="count">{{ totalCanceladas() }}</span>
     </button>
   </div>
 
   @if (carregando()) {
-    <p class="empty">Carregando empréstimos...</p>
-  } @else if (emprestimosFiltrados().length === 0) {
-    <p class="empty">Nenhum empréstimo encontrado.</p>
+    <p class="empty">Carregando reservas...</p>
+  } @else if (reservasFiltradas().length === 0) {
+    <p class="empty">Nenhuma reserva encontrada.</p>
   } @else {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th>Data Reservada</th>
             <th>Livro</th>
             <th>Usuário</th>
-            <th>Empréstimo</th>
-            <th>Previsão</th>
-            <th>Devolução</th>
             <th>Status</th>
-            <th></th>
           </tr>
         </thead>
         <tbody>
-          @for (item of emprestimosPagina(); track item.id) {
+          @for (item of reservasPagina(); track item.id) {
             <tr>
-              <td><strong>{{ item.livro.titulo }}</strong></td>
+              <td><strong>{{ item.data | date: 'dd/MM/yyyy' }}</strong></td>
+              <td>{{ item.livro.titulo }}</td>
               <td>{{ item.usuario.nome }}</td>
-              <td>{{ item.dataEmprestimo | date: 'dd/MM/yyyy' }}</td>
-              <td>{{ item.dataPrevistaDevolucao | date: 'dd/MM/yyyy' }}</td>
-              <td>{{ item.dataDevolucao ? (item.dataDevolucao | date: 'dd/MM/yyyy') : '—' }}</td>
               <td>
                 <span
                   class="badge"
-                  [class.ok]="item.statusEmprestimo === 'CONCLUIDO'"
-                  [class.warn]="item.statusEmprestimo === 'ATIVO'"
-                  [class.danger]="item.statusEmprestimo === 'ATRASADO'"
+                  [class.ok]="item.statusReserva === 'CONCLUIDA'"
+                  [class.warn]="item.statusReserva === 'AGUARDANDO'"
+                  [class.danger]="item.statusReserva === 'CANCELADO'"
                 >
-                  @switch (item.statusEmprestimo) {
-                    @case ('ATIVO') { Ativo }
-                    @case ('ATRASADO') { Atrasado }
-                    @default { Concluído }
+                  @switch (item.statusReserva) {
+                    @case ('AGUARDANDO') { Aguardando }
+                    @case ('CANCELADO') { Cancelado }
+                    @default { Concluída }
                   }
                 </span>
-              </td>
-              <td class="row-actions">
-                @if (item.statusEmprestimo === 'ATIVO' || item.statusEmprestimo === 'ATRASADO') {
-                  <button
-                    type="button"
-                    class="btn subtle"
-                    [disabled]="devolvendoId() === item.id"
-                    (click)="devolver(item)"
-                  >
-                    {{ devolvendoId() === item.id ? 'Devolvendo...' : 'Devolver' }}
-                  </button>
-                  @if (item.statusEmprestimo === 'ATIVO' && (item.quantidadeRenovacaoEmprestimo ?? 0) < 1) {
-                    <button
-                      type="button"
-                      class="btn ghost"
-                      [disabled]="renovandoId() === item.id"
-                      (click)="renovar(item)"
-                    >
-                      {{ renovandoId() === item.id ? 'Renovando...' : 'Renovar' }}
-                    </button>
-                  }
-                }
               </td>
             </tr>
           }
@@ -144,7 +113,7 @@
     <div class="drawer-backdrop" (click)="fecharDrawer()"></div>
     <div class="drawer">
       <div class="drawer-header">
-        <h2>Novo empréstimo</h2>
+        <h2>Nova reserva</h2>
         <button type="button" class="drawer-close" (click)="fecharDrawer()" aria-label="Fechar">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
@@ -152,7 +121,7 @@
       <div class="drawer-body">
         <form class="form" [formGroup]="form" (ngSubmit)="realizar()">
           <label class="combo">
-            Livro disponível
+            Livro
             <input
               type="text"
               placeholder="Buscar por título, autor ou ISBN"
@@ -160,7 +129,6 @@
               (input)="onBuscaLivroChange($any($event.target).value)"
               (focus)="listaLivrosAberta.set(true)"
               (blur)="fecharListaLivros()"
-              [disabled]="livrosDisponiveis().length === 0"
               autocomplete="off"
             />
             @if (listaLivrosAberta() && livrosFiltrados().length > 0) {
@@ -182,12 +150,11 @@
             Usuário
             <input
               type="text"
-              placeholder="Buscar por nome, CPF ou e-mail"
+              placeholder="Buscar por nome ou CPF"
               [value]="buscaUsuario()"
               (input)="onBuscaUsuarioChange($any($event.target).value)"
               (focus)="listaUsuariosAberta.set(true)"
               (blur)="fecharListaUsuarios()"
-              [disabled]="usuarios().length === 0"
               autocomplete="off"
             />
             @if (listaUsuariosAberta() && usuariosFiltrados().length > 0) {
@@ -206,24 +173,17 @@
           </label>
 
           <label>
-            Previsão de devolução
-            <input formControlName="dataPrevistaDevolucao" type="date" [attr.min]="hoje" />
+            Data da reserva
+            <input formControlName="data" type="date" [attr.min]="hoje" />
           </label>
-
-          @if (livrosDisponiveis().length === 0) {
-            <p class="hint">Não há livros disponíveis no momento.</p>
-          }
-          @if (usuarios().length === 0) {
-            <p class="hint">Cadastre ao menos um usuário para emprestar.</p>
-          }
 
           <div class="actions">
             <button
               type="submit"
               class="btn primary"
-              [disabled]="salvando() || livrosDisponiveis().length === 0 || usuarios().length === 0"
+              [disabled]="salvando() || !livroSelecionado() || !usuarioSelecionado()"
             >
-              {{ salvando() ? 'Registrando...' : 'Emprestar' }}
+              {{ salvando() ? 'Registrando...' : 'Reservar' }}
             </button>
             <button type="button" class="btn ghost" (click)="fecharDrawer()">Cancelar</button>
           </div>
