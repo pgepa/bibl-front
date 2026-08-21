@@ -173,18 +173,20 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  remover(usuario: Usuario): void {
-    if (!confirm(`Remover o usuário "${usuario.nome}"?`)) {
-      return;
-    }
+  toggleStatus(usuario: Usuario): void {
+    const acao = usuario.statusUsuario === 'ATIVO' ? 'desativar' : 'ativar';
+    const request$ = acao === 'desativar'
+      ? this.usuarioService.desativar(usuario.id)
+      : this.usuarioService.ativar(usuario.id);
 
-    this.usuarioService.remover(usuario.id).subscribe({
+    request$.subscribe({
       next: () => {
-        this.sucesso.set('Usuário removido.');
+        const msg = acao === 'desativar' ? 'Usuário desativado.' : 'Usuário ativado.';
+        this.sucesso.set(msg);
         this.carregar();
       },
       error: (err) => {
-        this.erro.set(obterMensagemErro(err, 'Não foi possível remover o usuário.'));
+        this.erro.set(obterMensagemErro(err, `Não foi possível ${acao} o usuário.`));
       },
     });
   }

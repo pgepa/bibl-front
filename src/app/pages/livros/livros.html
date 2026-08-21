@@ -42,20 +42,30 @@
     </button>
   </div>
 
-  <div class="column-toggles" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem; font-size: 0.85rem; flex-wrap: wrap; background: #fff; padding: 0.65rem 1rem; border-radius: var(--radius); border: 1px solid var(--line); width: max-content; max-width: 100%;">
-    <span style="font-weight: 700; color: var(--muted); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.06em;">Colunas:</span>
-    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
-      <input type="checkbox" [checked]="colunasVisiveis().autor" (change)="toggleColuna('autor')"> Autor
-    </label>
-    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
-      <input type="checkbox" [checked]="colunasVisiveis().anoLancamento" (change)="toggleColuna('anoLancamento')"> Ano
-    </label>
-    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
-      <input type="checkbox" [checked]="colunasVisiveis().status" (change)="toggleColuna('status')"> Status
-    </label>
-    <label style="display: flex; gap: 0.35rem; align-items: center; cursor: pointer; color: var(--ink); font-weight: 500;">
-      <input type="checkbox" [checked]="colunasVisiveis().isbn" (change)="toggleColuna('isbn')"> ISBN
-    </label>
+  <div class="col-toggles">
+    <span class="col-toggles-label">Colunas visíveis</span>
+    <div class="col-toggles-pills">
+      <label class="col-pill" [class.active]="colunasVisiveis().autor">
+        <input type="checkbox" [checked]="colunasVisiveis().autor" (change)="toggleColuna('autor')" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Autor
+      </label>
+      <label class="col-pill" [class.active]="colunasVisiveis().anoLancamento">
+        <input type="checkbox" [checked]="colunasVisiveis().anoLancamento" (change)="toggleColuna('anoLancamento')" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Ano
+      </label>
+      <label class="col-pill" [class.active]="colunasVisiveis().status">
+        <input type="checkbox" [checked]="colunasVisiveis().status" (change)="toggleColuna('status')" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Status
+      </label>
+      <label class="col-pill" [class.active]="colunasVisiveis().isbn">
+        <input type="checkbox" [checked]="colunasVisiveis().isbn" (change)="toggleColuna('isbn')" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="13" height="13"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+        ISBN
+      </label>
+    </div>
   </div>
 
   @if (carregando()) {
@@ -94,7 +104,7 @@
               }
               <td class="row-actions">
                 <button type="button" class="btn subtle" (click)="editar(livro)">Editar</button>
-                <button type="button" class="btn danger-text" (click)="remover(livro)">Remover</button>
+                <button type="button" class="btn danger-outline" (click)="remover(livro)">Remover</button>
               </td>
             </tr>
           }
@@ -172,10 +182,10 @@
           }
 
           <div class="actions">
-            <button type="submit" class="btn primary" [disabled]="salvando()">
+            <button type="submit" class="btn btn-save" [disabled]="salvando()">
               {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
             </button>
-            <button type="button" class="btn ghost" (click)="fecharDrawer()">Cancelar</button>
+            <button type="button" class="btn btn-cancel" (click)="fecharDrawer()">Cancelar</button>
           </div>
         </form>
       </div>

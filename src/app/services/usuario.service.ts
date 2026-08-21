@@ -28,4 +28,12 @@ export class UsuarioService {
   remover(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
+
+  desativar(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/desativar/${id}`, {});
+  }
+
+  ativar(id: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/ativar/${id}`, {});
+  }
 }

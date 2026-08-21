@@ -180,12 +180,12 @@
           <div class="actions">
             <button
               type="submit"
-              class="btn primary"
+              class="btn btn-save"
               [disabled]="salvando() || !livroSelecionado() || !usuarioSelecionado()"
             >
               {{ salvando() ? 'Registrando...' : 'Reservar' }}
             </button>
-            <button type="button" class="btn ghost" (click)="fecharDrawer()">Cancelar</button>
+            <button type="button" class="btn btn-cancel" (click)="fecharDrawer()">Cancelar</button>
           </div>
         </form>
       </div>

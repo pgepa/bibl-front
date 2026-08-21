@@ -73,7 +73,15 @@
               </td>
               <td class="row-actions">
                 <button type="button" class="btn subtle" (click)="editar(usuario)">Editar</button>
-                <button type="button" class="btn danger-text" (click)="remover(usuario)">Remover</button>
+                <button
+                  type="button"
+                  class="btn"
+                  [class.btn-desativar]="usuario.statusUsuario === 'ATIVO'"
+                  [class.btn-ativar]="usuario.statusUsuario === 'INATIVO'"
+                  (click)="toggleStatus(usuario)"
+                >
+                  {{ usuario.statusUsuario === 'ATIVO' ? 'Desativar' : 'Ativar' }}
+                </button>
               </td>
             </tr>
           }
@@ -136,10 +144,10 @@
           </label>
 
           <div class="actions">
-            <button type="submit" class="btn primary" [disabled]="salvando()">
+            <button type="submit" class="btn btn-save" [disabled]="salvando()">
               {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
             </button>
-            <button type="button" class="btn ghost" (click)="fecharDrawer()">Cancelar</button>
+            <button type="button" class="btn btn-cancel" (click)="fecharDrawer()">Cancelar</button>
           </div>
         </form>
       </div>
