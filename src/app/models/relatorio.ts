@@ -1,6 +1,6 @@
 export interface RelatorioEmprestimoResponse {
   emprestimosTotais: number;
   emprestimosAtivos: number;
-  emprestimosConluidos: number;
+  emprestimosConcluidos: number;
   emprestimosAtrasados: number;
 }
