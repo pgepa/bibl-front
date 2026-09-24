@@ -5,6 +5,7 @@ import { DatePipe } from '@angular/common';
 import { EmprestimoService } from '../../services/emprestimo.service';
 import { LivroService } from '../../services/livro.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { AuthService } from '../../services/auth.service';
 import { Emprestimo } from '../../models/emprestimo';
 import { Livro } from '../../models/livro';
 import { Usuario } from '../../models/usuario';
@@ -22,6 +23,7 @@ export class EmprestimosComponent implements OnInit {
   private readonly emprestimoService = inject(EmprestimoService);
   private readonly livroService = inject(LivroService);
   private readonly usuarioService = inject(UsuarioService);
+  readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
   readonly emprestimos = signal<Emprestimo[]>([]);
@@ -60,10 +62,11 @@ export class EmprestimosComponent implements OnInit {
 
   readonly hoje = new Date().toISOString().slice(0, 10);
 
-  readonly form = this.fb.nonNullable.group({
+  readonly form = this.fb.group({
     livroId: [0, [Validators.required, Validators.min(1)]],
     usuarioId: [0, [Validators.required, Validators.min(1)]],
     dataPrevistaDevolucao: [this.prazoPadrao(), [Validators.required, this.dataNaoPassadaValidator.bind(this)]],
+    nomeFuncionario: [''],
   });
 
   readonly totalAtivos = computed(
@@ -84,9 +87,13 @@ export class EmprestimosComponent implements OnInit {
       const combinaFiltro = filtro === 'TODOS' || item.statusEmprestimo === filtro;
       const combinaTermo =
         !termo ||
-        item.livro.titulo.toLowerCase().includes(termo) ||
-        item.usuario.nome.toLowerCase().includes(termo);
-      return combinaFiltro && combinaTermo;
+        item.livro?.titulo?.toLowerCase().includes(termo) ||
+        item.livro?.registro?.toLowerCase().includes(termo) ||
+        item.usuario?.nome?.toLowerCase().includes(termo) ||
+        item.usuario?.matricula?.toLowerCase().includes(termo) ||
+        item.nomeFuncionario?.toLowerCase().includes(termo) ||
+        item.idTransacao?.toLowerCase().includes(termo);
+      return Boolean(combinaFiltro && combinaTermo);
     });
   });
 
@@ -120,23 +127,26 @@ export class EmprestimosComponent implements OnInit {
     }
     return lista.filter(
       (livro) =>
-        livro.titulo.toLowerCase().includes(termo) ||
-        livro.autor.toLowerCase().includes(termo) ||
-        livro.isbn.toLowerCase().includes(termo),
+        livro.titulo?.toLowerCase().includes(termo) ||
+        livro.autor?.toLowerCase().includes(termo) ||
+        livro.registro?.toLowerCase().includes(termo) ||
+        livro.isbn?.toLowerCase().includes(termo),
     );
   });
 
   readonly usuariosFiltrados = computed(() => {
     const termo = this.buscaUsuario().trim().toLowerCase();
-    const lista = this.usuarios();
+    const lista = this.usuarios().filter((u) => u.statusUsuario === 'ATIVO');
     if (!termo) {
       return lista;
     }
     return lista.filter(
       (usuario) =>
-        usuario.nome.toLowerCase().includes(termo) ||
-        usuario.cpf.toLowerCase().includes(termo) ||
-        usuario.email.toLowerCase().includes(termo),
+        usuario.nome?.toLowerCase().includes(termo) ||
+        usuario.cpf?.toLowerCase().includes(termo) ||
+        usuario.matricula?.toLowerCase().includes(termo) ||
+        usuario.setor?.toLowerCase().includes(termo) ||
+        usuario.email?.toLowerCase().includes(termo),
     );
   });
 
@@ -176,13 +186,15 @@ export class EmprestimosComponent implements OnInit {
 
   selecionarLivro(livro: Livro): void {
     this.form.controls.livroId.setValue(livro.id);
-    this.buscaLivro.set(`${livro.titulo} — ${livro.autor}`);
+    const reg = livro.registro ? `[${livro.registro}] ` : '';
+    this.buscaLivro.set(`${reg}${livro.titulo} — ${livro.autor}`);
     this.listaLivrosAberta.set(false);
   }
 
   selecionarUsuario(usuario: Usuario): void {
     this.form.controls.usuarioId.setValue(usuario.id);
-    this.buscaUsuario.set(usuario.nome);
+    const mat = usuario.matricula ? ` (Mat: ${usuario.matricula})` : '';
+    this.buscaUsuario.set(`${usuario.nome}${mat}`);
     this.listaUsuariosAberta.set(false);
   }
 
@@ -215,7 +227,13 @@ export class EmprestimosComponent implements OnInit {
   }
 
   abrirNovo(): void {
-    this.form.reset({ livroId: 0, usuarioId: 0, dataPrevistaDevolucao: this.prazoPadrao() });
+    const atendenteAtual = this.auth.currentUser()?.nome || 'Atendente da Biblioteca';
+    this.form.reset({
+      livroId: 0,
+      usuarioId: 0,
+      dataPrevistaDevolucao: this.prazoPadrao(),
+      nomeFuncionario: atendenteAtual,
+    });
     this.buscaLivro.set('');
     this.buscaUsuario.set('');
     this.sucesso.set(null);
@@ -233,14 +251,21 @@ export class EmprestimosComponent implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const val = this.form.getRawValue();
+    const payload = {
+      livroId: Number(val.livroId),
+      usuarioId: Number(val.usuarioId),
+      dataPrevistaDevolucao: val.dataPrevistaDevolucao!,
+      nomeFuncionario: val.nomeFuncionario?.trim() || this.auth.currentUser()?.nome || undefined,
+    };
+
     this.salvando.set(true);
     this.erro.set(null);
     this.sucesso.set(null);
 
     this.emprestimoService.realizar(payload).subscribe({
       next: () => {
-        this.sucesso.set('Empréstimo registrado.');
+        this.sucesso.set('Empréstimo registrado com sucesso.');
         this.salvando.set(false);
         this.fecharDrawer();
         this.carregar();
@@ -253,7 +278,7 @@ export class EmprestimosComponent implements OnInit {
   }
 
   devolver(emprestimo: Emprestimo): void {
-    if (!confirm(`Confirmar devolução de "${emprestimo.livro.titulo}"?`)) {
+    if (!confirm(`Confirmar devolução da obra "${emprestimo.livro.titulo}"?`)) {
       return;
     }
 
@@ -263,8 +288,7 @@ export class EmprestimosComponent implements OnInit {
 
     this.emprestimoService.devolver(emprestimo.id).subscribe({
       next: () => {
-        
-        this.sucesso.set('Devolução registrada.');
+        this.sucesso.set('Devolução registrada com sucesso.');
         this.devolvendoId.set(null);
         this.carregar();
       },
@@ -282,7 +306,7 @@ export class EmprestimosComponent implements OnInit {
 
     this.emprestimoService.renovar(emprestimo.id).subscribe({
       next: () => {
-        this.sucesso.set('Empréstimo renovado.');
+        this.sucesso.set('Empréstimo renovado com sucesso.');
         this.renovandoId.set(null);
         this.carregar();
       },

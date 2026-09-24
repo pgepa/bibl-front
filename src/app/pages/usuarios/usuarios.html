@@ -1,9 +1,9 @@
 <section class="page">
   <header class="page-header">
     <div>
-      <p class="eyebrow">Leitores</p>
+      <p class="eyebrow">Leitores & Servidores</p>
       <h1>Usuários</h1>
-      <p class="lead">Cadastre e consulte os leitores autorizados a emprestar.</p>
+      <p class="lead">Gerencie os servidores e usuários autorizados a realizar empréstimos na biblioteca.</p>
     </div>
   </header>
 
@@ -19,14 +19,14 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.2-3.2" /></svg>
       <input
         type="search"
-        placeholder="Buscar por nome, CPF, e-mail ou telefone"
+        placeholder="Buscar por nome, matrícula, CPF, setor ou e-mail..."
         [value]="busca()"
         (input)="onBuscaChange($any($event.target).value)"
       />
     </label>
     <button type="button" class="btn primary new" (click)="abrirNovo()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
-      Novo usuário
+      Novo Usuário
     </button>
   </div>
 
@@ -45,27 +45,45 @@
   @if (carregando()) {
     <p class="empty">Carregando usuários...</p>
   } @else if (usuariosFiltrados().length === 0) {
-    <p class="empty">Nenhum usuário encontrado.</p>
+    <p class="empty">Nenhum usuário encontrado para a busca informada.</p>
   } @else {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Nome</th>
+            <th>Nome / Matrícula</th>
             <th>CPF</th>
-            <th>E-mail</th>
-            <th>Telefone</th>
+            <th>Setor / Lotação</th>
+            <th>Contato</th>
+            <th>Perfil</th>
             <th>Status</th>
-            <th></th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
           @for (usuario of usuariosPagina(); track usuario.id) {
             <tr>
-              <td><strong>{{ usuario.nome }}</strong></td>
+              <td>
+                <strong>{{ usuario.nome }}</strong>
+                @if (usuario.matricula) {
+                  <span class="user-sub-mat">Mat: {{ usuario.matricula }}</span>
+                }
+              </td>
               <td>{{ usuario.cpf }}</td>
-              <td>{{ usuario.email }}</td>
-              <td>{{ usuario.telefone }}</td>
+              <td>
+                <span class="user-setor">{{ usuario.setor || 'Não informado' }}</span>
+              </td>
+              <td>
+                <div class="user-contact">
+                  <span>{{ usuario.email }}</span>
+                  <small>{{ usuario.telefone }}</small>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [class.ok]="usuario.tipoUsuario === 'ROLE_ADMIN'" [class.badge-neutral]="usuario.tipoUsuario !== 'ROLE_ADMIN'">
+                  {{ usuario.tipoUsuario === 'ROLE_ADMIN' ? 'Administrador' : 'Leitor' }}
+                </span>
+              </td>
               <td>
                 <span class="badge" [class.ok]="usuario.statusUsuario === 'ATIVO'" [class.warn]="usuario.statusUsuario === 'INATIVO'">
                   {{ usuario.statusUsuario === 'ATIVO' ? 'Ativo' : 'Inativo' }}
@@ -116,36 +134,77 @@
     <div class="drawer-backdrop" (click)="fecharDrawer()"></div>
     <div class="drawer">
       <div class="drawer-header">
-        <h2>{{ editandoId() ? 'Editar usuário' : 'Novo usuário' }}</h2>
+        <div>
+          <h2>{{ editandoId() ? 'Editar Usuário' : 'Novo Usuário' }}</h2>
+          <small class="drawer-subtitle">Cadastro de leitores e operadores do sistema</small>
+        </div>
         <button type="button" class="drawer-close" (click)="fecharDrawer()" aria-label="Fechar">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
       </div>
       <div class="drawer-body">
         <form class="form" [formGroup]="form" (ngSubmit)="salvar()">
+          
           <label>
-            CPF
-            <input formControlName="cpf" type="text" placeholder="Somente números" maxlength="11" />
+            Nome Completo *
+            <input formControlName="nome" type="text" placeholder="Ex.: Maria de Fátima Souza" />
           </label>
+          @if (form.controls.nome.invalid && form.controls.nome.touched) {
+            <p class="hint">O nome completo é obrigatório.</p>
+          }
+
+          <div class="form-row">
+            <label>
+              CPF * (somente números)
+              <input formControlName="cpf" type="text" placeholder="11 dígitos" maxlength="11" />
+            </label>
+            <label>
+              Matrícula Funcional
+              <input formControlName="matricula" type="text" placeholder="Ex.: 592348" />
+            </label>
+          </div>
+          @if (form.controls.cpf.invalid && form.controls.cpf.touched) {
+            <p class="hint">Informe um CPF válido com exatamente 11 dígitos numéricos.</p>
+          }
+
+          <div class="form-row">
+            <label>
+              Setor / Departamento
+              <input formControlName="setor" type="text" placeholder="Ex.: Procuradoria Fiscal (PF)" />
+            </label>
+            <label>
+              Perfil de Acesso *
+              <select formControlName="tipoUsuario">
+                <option value="ROLE_USUARIO">Leitor / Servidor Padrão</option>
+                <option value="ROLE_ADMIN">Administrador (Bibliotecário / Atendente)</option>
+              </select>
+            </label>
+          </div>
 
           <label>
-            Nome
-            <input formControlName="nome" type="text" placeholder="Nome completo" />
+            E-mail Institucional *
+            <input formControlName="email" type="email" placeholder="usuario@pge.pa.gov.br" />
           </label>
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+            <p class="hint">Informe um e-mail válido.</p>
+          }
 
           <label>
-            E-mail
-            <input formControlName="email" type="email" placeholder="nome@exemplo.com" />
+            Telefone / WhatsApp *
+            <input formControlName="telefone" type="tel" placeholder="(91) 98888-7777" />
           </label>
+          @if (form.controls.telefone.invalid && form.controls.telefone.touched) {
+            <p class="hint">Informe um telefone de contato.</p>
+          }
 
           <label>
-            Telefone
-            <input formControlName="telefone" type="tel" placeholder="(91) 99999-9999" maxlength="11" />
+            Senha {{ editandoId() ? '(deixe em branco para manter a atual)' : 'de Acesso' }}
+            <input formControlName="senha" type="password" placeholder="Digite uma senha" />
           </label>
 
           <div class="actions">
             <button type="submit" class="btn btn-save" [disabled]="salvando()">
-              {{ salvando() ? 'Salvando...' : editandoId() ? 'Atualizar' : 'Cadastrar' }}
+              {{ salvando() ? 'Salvando...' : editandoId() ? 'Salvar Alterações' : 'Cadastrar Usuário' }}
             </button>
             <button type="button" class="btn btn-cancel" (click)="fecharDrawer()">Cancelar</button>
           </div>

@@ -6,6 +6,7 @@ import { UsuariosComponent } from './pages/usuarios/usuarios';
 import { EmprestimosComponent } from './pages/emprestimos/emprestimos';
 import { ReservasComponent } from './pages/reservas/reservas';
 import { RelatoriosComponent } from './pages/relatorios/relatorios';
+import { LoginComponent } from './pages/login/login';
 
 export const routes: Routes = [
   {
@@ -13,6 +14,7 @@ export const routes: Routes = [
     component: LayoutComponent,
     children: [
       { path: '', component: HomeComponent },
+      { path: 'login', component: LoginComponent },
       { path: 'livros', component: LivrosComponent },
       { path: 'usuarios', component: UsuariosComponent },
       { path: 'emprestimos', component: EmprestimosComponent },

@@ -1,0 +1,141 @@
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 140px);
+  padding: 1.5rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 2.25rem;
+  box-shadow: var(--shadow-lift);
+  animation: rise 360ms ease both;
+}
+
+.login-brand {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: var(--surface);
+  color: var(--deep);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.login-brand h2 {
+  font-family: var(--font-display);
+  font-size: 1.65rem;
+  margin: 0 0 0.35rem;
+  color: var(--ink);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.field input {
+  padding: 0.75rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: #ffffff;
+  font-size: 0.95rem;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 185, 139, 0.18);
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: var(--danger);
+  font-weight: 500;
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.login-hint {
+  margin-top: 1.75rem;
+  padding: 0.85rem;
+  background: var(--surface);
+  border-radius: 0.65rem;
+  border: 1px solid var(--line);
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.hint-title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.login-hint code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  color: var(--deep);
+  font-weight: 600;
+}
+
+.login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.link-back {
+  font-size: 0.85rem;
+  color: var(--accent-deep);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 150ms ease;
+}
+
+.link-back:hover {
+  text-decoration: underline;
+}

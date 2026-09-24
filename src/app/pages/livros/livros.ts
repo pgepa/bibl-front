@@ -1,10 +1,12 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LivroService } from '../../services/livro.service';
+import { AuthService } from '../../services/auth.service';
 import { Livro } from '../../models/livro';
 import { obterMensagemErro } from '../../utils/error.util';
 
 type FiltroDisponibilidade = 'TODOS' | 'DISPONIVEL' | 'EMPRESTADO';
+type ModoVisao = 'resumida' | 'detalhada';
 
 @Component({
   selector: 'app-livros',
@@ -15,6 +17,7 @@ type FiltroDisponibilidade = 'TODOS' | 'DISPONIVEL' | 'EMPRESTADO';
 export class LivrosComponent implements OnInit {
   private readonly livroService = inject(LivroService);
   private readonly fb = inject(FormBuilder);
+  readonly auth = inject(AuthService);
 
   readonly livros = signal<Livro[]>([]);
   readonly carregando = signal(true);
@@ -24,26 +27,30 @@ export class LivrosComponent implements OnInit {
   readonly editandoId = signal<number | null>(null);
   readonly busca = signal('');
   readonly filtro = signal<FiltroDisponibilidade>('TODOS');
+  readonly modoVisao = signal<ModoVisao>('resumida');
   readonly drawerAberto = signal(false);
   
-  readonly colunasVisiveis = signal({
-    autor: true,
-    anoLancamento: true,
-    status: true,
-    isbn: true
-  });
   readonly pagina = signal(1);
   readonly itensPorPagina = 8;
   readonly anoAtual = new Date().getFullYear();
 
-  readonly form = this.fb.nonNullable.group({
+  readonly form = this.fb.group({
     titulo: ['', Validators.required],
     autor: ['', Validators.required],
-    isbn: ['', Validators.required],
+    registro: [''],
+    classificacao: [''],
+    tipoDocumental: ['Livro'],
+    localPublicacao: [''],
+    editora: [''],
+    edicao: [null as number | null],
     anoLancamento: [
       this.anoAtual,
-      [Validators.required, Validators.min(1), Validators.max(this.anoAtual)],
+      [Validators.required, Validators.min(1), Validators.max(this.anoAtual + 1)],
     ],
+    idioma: ['Português'],
+    paginas: [null as number | null],
+    isbn: [''],
+    descritores: [''],
   });
 
   readonly totalDisponiveis = computed(
@@ -60,16 +67,19 @@ export class LivrosComponent implements OnInit {
     return this.livros().filter((livro) => {
       const combinaTermo =
         !termo ||
-        livro.titulo.toLowerCase().includes(termo) ||
-        livro.autor.toLowerCase().includes(termo) ||
-        livro.isbn.toLowerCase().includes(termo);
+        livro.titulo?.toLowerCase().includes(termo) ||
+        livro.autor?.toLowerCase().includes(termo) ||
+        livro.isbn?.toLowerCase().includes(termo) ||
+        livro.registro?.toLowerCase().includes(termo) ||
+        livro.classificacao?.toLowerCase().includes(termo) ||
+        livro.descritores?.toLowerCase().includes(termo);
 
       const combinaFiltro =
         filtro === 'TODOS' ||
         (filtro === 'DISPONIVEL' && livro.disponivel) ||
         (filtro === 'EMPRESTADO' && !livro.disponivel);
 
-      return combinaTermo && combinaFiltro;
+      return Boolean(combinaTermo && combinaFiltro);
     });
   });
 
@@ -104,8 +114,8 @@ export class LivrosComponent implements OnInit {
     this.pagina.set(1);
   }
 
-  toggleColuna(coluna: 'autor' | 'anoLancamento' | 'status' | 'isbn'): void {
-    this.colunasVisiveis.update((c) => ({ ...c, [coluna]: !c[coluna] }));
+  alternarModoVisao(modo: ModoVisao): void {
+    this.modoVisao.set(modo);
   }
 
   onBuscaChange(valor: string): void {
@@ -136,8 +146,17 @@ export class LivrosComponent implements OnInit {
     this.form.reset({
       titulo: '',
       autor: '',
-      isbn: '',
+      registro: '',
+      classificacao: '',
+      tipoDocumental: 'Livro',
+      localPublicacao: '',
+      editora: '',
+      edicao: null,
       anoLancamento: this.anoAtual,
+      idioma: 'Português',
+      paginas: null,
+      isbn: '',
+      descritores: '',
     });
     this.sucesso.set(null);
     this.erro.set(null);
@@ -149,8 +168,17 @@ export class LivrosComponent implements OnInit {
     this.form.setValue({
       titulo: livro.titulo,
       autor: livro.autor,
-      isbn: livro.isbn,
+      registro: livro.registro || '',
+      classificacao: livro.classificacao || '',
+      tipoDocumental: livro.tipoDocumental || 'Livro',
+      localPublicacao: livro.localPublicacao || '',
+      editora: livro.editora || '',
+      edicao: livro.edicao ?? null,
       anoLancamento: livro.anoLancamento,
+      idioma: livro.idioma || 'Português',
+      paginas: livro.paginas ?? null,
+      isbn: livro.isbn || '',
+      descritores: livro.descritores || '',
     });
     this.sucesso.set(null);
     this.erro.set(null);
@@ -168,7 +196,23 @@ export class LivrosComponent implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const val = this.form.getRawValue();
+    const payload: any = {
+      titulo: val.titulo!,
+      autor: val.autor!,
+      anoLancamento: Number(val.anoLancamento) || this.anoAtual,
+      isbn: val.isbn?.trim() ? val.isbn.trim() : undefined,
+      registro: val.registro?.trim() ? val.registro.trim() : undefined,
+      classificacao: val.classificacao?.trim() ? val.classificacao.trim() : undefined,
+      tipoDocumental: val.tipoDocumental?.trim() ? val.tipoDocumental.trim() : undefined,
+      localPublicacao: val.localPublicacao?.trim() ? val.localPublicacao.trim() : undefined,
+      editora: val.editora?.trim() ? val.editora.trim() : undefined,
+      edicao: val.edicao ? Number(val.edicao) : undefined,
+      idioma: val.idioma?.trim() ? val.idioma.trim() : undefined,
+      paginas: val.paginas ? Number(val.paginas) : undefined,
+      descritores: val.descritores?.trim() ? val.descritores.trim() : undefined,
+    };
+
     const id = this.editandoId();
     this.salvando.set(true);
     this.erro.set(null);
@@ -180,7 +224,7 @@ export class LivrosComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.sucesso.set(id ? 'Livro atualizado.' : 'Livro cadastrado.');
+        this.sucesso.set(id ? 'Livro atualizado com sucesso.' : 'Livro cadastrado com sucesso.');
         this.salvando.set(false);
         this.fecharDrawer();
         this.carregar();
@@ -193,13 +237,13 @@ export class LivrosComponent implements OnInit {
   }
 
   remover(livro: Livro): void {
-    if (!confirm(`Remover o livro "${livro.titulo}"?`)) {
+    if (!confirm(`Deseja realmente remover o livro "${livro.titulo}"?`)) {
       return;
     }
 
     this.livroService.remover(livro.id).subscribe({
       next: () => {
-        this.sucesso.set('Livro removido.');
+        this.sucesso.set('Livro removido com sucesso.');
         this.carregar();
       },
       error: (err) => {

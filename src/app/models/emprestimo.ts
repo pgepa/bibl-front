@@ -12,11 +12,15 @@ export interface Emprestimo {
   dataDevolucao: string | null;
   statusEmprestimo: StatusEmprestimo;
   quantidadeRenovacaoEmprestimo?: number;
+  idTransacao?: string;
+  nomeFuncionario?: string;
 }
 
 export interface EmprestimoPayload {
-  livroId: number;
+  livroId?: number;
+  livroIds?: number[];
   usuarioId: number;
   dataPrevistaDevolucao: string;
+  nomeFuncionario?: string;
 }
 

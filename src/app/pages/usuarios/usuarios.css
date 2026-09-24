@@ -1,1 +1,39 @@
-/* page-specific overrides only; shared styles live in styles.css */
+.user-sub-mat {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--muted);
+  font-family: monospace;
+  margin-top: 0.2rem;
+}
+
+.user-setor {
+  display: inline-block;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: #f0f4f2;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+}
+
+.user-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+}
+
+.user-contact small {
+  color: var(--muted);
+}
+
+.badge-neutral {
+  background: #f1f3f5;
+  color: #495057;
+}
+
+.drawer-subtitle {
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: block;
+  margin-top: 0.15rem;
+}

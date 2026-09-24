@@ -1,9 +1,9 @@
 <section class="page">
   <header class="page-header">
     <div>
-      <p class="eyebrow">Circulação</p>
+      <p class="eyebrow">Circulação & Empréstimos</p>
       <h1>Empréstimos</h1>
-      <p class="lead">Registre saídas, devoluções e renovações de livros do acervo.</p>
+      <p class="lead">Registre saídas, devoluções, controle de atendentes e renovações de livros do acervo.</p>
     </div>
   </header>
 
@@ -19,14 +19,14 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.2-3.2" /></svg>
       <input
         type="search"
-        placeholder="Buscar por livro ou usuário"
+        placeholder="Buscar por livro, registro, leitor, matrícula, atendente ou transação..."
         [value]="busca()"
         (input)="onBuscaChange($any($event.target).value)"
       />
     </label>
     <button type="button" class="btn primary new" (click)="abrirNovo()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14" /></svg>
-      Novo empréstimo
+      Novo Empréstimo
     </button>
   </div>
 
@@ -52,29 +52,56 @@
   @if (carregando()) {
     <p class="empty">Carregando empréstimos...</p>
   } @else if (emprestimosFiltrados().length === 0) {
-    <p class="empty">Nenhum empréstimo encontrado.</p>
+    <p class="empty">Nenhum empréstimo encontrado para os filtros informados.</p>
   } @else {
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Livro</th>
-            <th>Usuário</th>
+            <th>Obra / Registro</th>
+            <th>Leitor / Matrícula</th>
+            <th>Atendente / Transação</th>
             <th>Empréstimo</th>
-            <th>Previsão</th>
-            <th>Devolução</th>
+            <th>Prev. Devolução</th>
+            <th>Devolução Real</th>
+            <th>Renovações</th>
             <th>Status</th>
-            <th class="th-actions"></th>
+            <th class="th-actions">Ações</th>
           </tr>
         </thead>
         <tbody>
           @for (item of emprestimosPagina(); track item.id) {
             <tr>
-              <td><strong>{{ item.livro.titulo }}</strong></td>
-              <td>{{ item.usuario.nome }}</td>
+              <td>
+                <strong class="item-title">{{ item.livro.titulo }}</strong>
+                @if (item.livro.registro) {
+                  <span class="sub-reg">Reg: {{ item.livro.registro }}</span>
+                }
+              </td>
+              <td>
+                <span class="user-item-name">{{ item.usuario.nome }}</span>
+                @if (item.usuario.matricula) {
+                  <small class="sub-mat">Mat: {{ item.usuario.matricula }}</small>
+                }
+              </td>
+              <td>
+                <span class="staff-name">{{ item.nomeFuncionario || '—' }}</span>
+                @if (item.idTransacao) {
+                  <span class="trx-pill" title="Código de Transação">{{ item.idTransacao }}</span>
+                }
+              </td>
               <td>{{ item.dataEmprestimo | date: 'dd/MM/yyyy' }}</td>
-              <td>{{ item.dataPrevistaDevolucao | date: 'dd/MM/yyyy' }}</td>
+              <td>
+                <span [class.text-danger]="item.statusEmprestimo === 'ATRASADO'">
+                  {{ item.dataPrevistaDevolucao | date: 'dd/MM/yyyy' }}
+                </span>
+              </td>
               <td>{{ item.dataDevolucao ? (item.dataDevolucao | date: 'dd/MM/yyyy') : '—' }}</td>
+              <td>
+                <span class="renew-badge">
+                  {{ item.quantidadeRenovacaoEmprestimo ?? 0 }}/1
+                </span>
+              </td>
               <td>
                 <span
                   class="badge"
@@ -85,7 +112,7 @@
                   @switch (item.statusEmprestimo) {
                     @case ('ATIVO') { Ativo }
                     @case ('ATRASADO') { Atrasado }
-                    @default { Concluído }
+                    @default { Devolvido }
                   }
                 </span>
               </td>
@@ -149,18 +176,22 @@
     <div class="drawer-backdrop" (click)="fecharDrawer()"></div>
     <div class="drawer">
       <div class="drawer-header">
-        <h2>Novo empréstimo</h2>
+        <div>
+          <h2>Novo Empréstimo</h2>
+          <small class="drawer-subtitle">Saída de exemplar físico do acervo</small>
+        </div>
         <button type="button" class="drawer-close" (click)="fecharDrawer()" aria-label="Fechar">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
         </button>
       </div>
       <div class="drawer-body">
         <form class="form" [formGroup]="form" (ngSubmit)="realizar()">
+          
           <label class="combo">
-            Livro disponível
+            Obra / Livro Disponível *
             <input
               type="text"
-              placeholder="Buscar por título, autor ou ISBN"
+              placeholder="Digite o título, autor ou número de registro..."
               [value]="buscaLivro()"
               (input)="onBuscaLivroChange($any($event.target).value)"
               (focus)="listaLivrosAberta.set(true)"
@@ -173,21 +204,24 @@
                 @for (livro of livrosFiltrados(); track livro.id) {
                   <li (mousedown)="selecionarLivro(livro)">
                     <strong>{{ livro.titulo }}</strong>
-                    <small>{{ livro.autor }}</small>
+                    <small>
+                      {{ livro.registro ? 'Reg: ' + livro.registro + ' • ' : '' }}
+                      {{ livro.autor }}
+                    </small>
                   </li>
                 }
               </ul>
             }
             @if (listaLivrosAberta() && buscaLivro() && livrosFiltrados().length === 0) {
-              <p class="combo-empty">Nenhum livro encontrado.</p>
+              <p class="combo-empty">Nenhum livro disponível encontrado.</p>
             }
           </label>
 
           <label class="combo">
-            Usuário
+            Leitor / Solicitante *
             <input
               type="text"
-              placeholder="Buscar por nome, CPF ou e-mail"
+              placeholder="Digite o nome, matrícula, CPF ou setor..."
               [value]="buscaUsuario()"
               (input)="onBuscaUsuarioChange($any($event.target).value)"
               (focus)="listaUsuariosAberta.set(true)"
@@ -200,18 +234,27 @@
                 @for (usuario of usuariosFiltrados(); track usuario.id) {
                   <li (mousedown)="selecionarUsuario(usuario)">
                     <strong>{{ usuario.nome }}</strong>
-                    <small>{{ usuario.cpf }}</small>
+                    <small>
+                      {{ usuario.matricula ? 'Mat: ' + usuario.matricula + ' • ' : '' }}
+                      {{ usuario.setor ? usuario.setor + ' • ' : '' }}
+                      CPF: {{ usuario.cpf }}
+                    </small>
                   </li>
                 }
               </ul>
             }
             @if (listaUsuariosAberta() && buscaUsuario() && usuariosFiltrados().length === 0) {
-              <p class="combo-empty">Nenhum usuário encontrado.</p>
+              <p class="combo-empty">Nenhum leitor ativo encontrado.</p>
             }
           </label>
 
           <label>
-            Previsão de devolução
+            Atendente Responsável
+            <input formControlName="nomeFuncionario" type="text" placeholder="Nome do bibliotecário/atendente" />
+          </label>
+
+          <label>
+            Data Prevista para Devolução *
             <input formControlName="dataPrevistaDevolucao" type="date" [attr.min]="hoje" />
           </label>
 
@@ -219,16 +262,16 @@
             <p class="hint">Não há livros disponíveis no momento.</p>
           }
           @if (usuarios().length === 0) {
-            <p class="hint">Cadastre ao menos um usuário para emprestar.</p>
+            <p class="hint">Cadastre ao menos um usuário ativo para emprestar.</p>
           }
 
           <div class="actions">
             <button
               type="submit"
               class="btn btn-save"
-              [disabled]="salvando() || livrosDisponiveis().length === 0 || usuarios().length === 0"
+              [disabled]="salvando() || form.invalid || livrosDisponiveis().length === 0 || usuarios().length === 0"
             >
-              {{ salvando() ? 'Registrando...' : 'Emprestar' }}
+              {{ salvando() ? 'Registrando...' : 'Confirmar Empréstimo' }}
             </button>
             <button type="button" class="btn btn-cancel" (click)="fecharDrawer()">Cancelar</button>
           </div>

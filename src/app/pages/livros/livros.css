@@ -1,1 +1,146 @@
-/* page-specific overrides only; shared styles live in styles.css */
+.view-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.mode-toggle {
+  display: inline-flex;
+  background: #e2ede8;
+  padding: 0.25rem;
+  border-radius: 0.65rem;
+  gap: 0.25rem;
+}
+
+.btn-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.btn-mode.active {
+  background: #fff;
+  color: var(--deep);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.badge-code {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--deep);
+  background: #e6f3ee;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+  border: 1px solid #c2e2d5;
+}
+
+.badge-classif {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #4a5568;
+  background: #edf2f7;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+}
+
+.badge-doc {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1d4ed8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.3rem;
+  margin-top: 0.25rem;
+}
+
+.book-title {
+  display: block;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.descriptors-text {
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.meta-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.meta-descriptors {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: #4a5568;
+  line-height: 1.3;
+}
+
+.author-name {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.pub-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+}
+
+.pub-details small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.form-fieldset {
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  background: #fdfdfd;
+}
+
+.form-fieldset legend {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-deep);
+  padding: 0 0.5rem;
+}
+
+.drawer-subtitle {
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: block;
+  margin-top: 0.15rem;
+}

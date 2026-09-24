@@ -9,8 +9,9 @@ export class LivroService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/livros`;
 
-  listar(): Observable<Livro[]> {
-    return this.http.get<Livro[]>(this.baseUrl);
+  listar(termo?: string): Observable<Livro[]> {
+    const options = termo ? { params: { termo } } : {};
+    return this.http.get<Livro[]>(this.baseUrl, options);
   }
 
   buscar(id: number): Observable<Livro> {

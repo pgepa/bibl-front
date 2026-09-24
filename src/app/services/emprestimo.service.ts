@@ -21,6 +21,10 @@ export class EmprestimoService {
     return this.http.post<Emprestimo>(this.baseUrl, payload);
   }
 
+  realizarLote(payload: EmprestimoPayload): Observable<Emprestimo[]> {
+    return this.http.post<Emprestimo[]>(`${this.baseUrl}/lote`, payload);
+  }
+
   devolver(id: number): Observable<Emprestimo> {
     return this.http.patch<Emprestimo>(`${this.baseUrl}/${id}/devolver`, {});
   }

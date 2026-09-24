@@ -69,9 +69,11 @@ export class ReservasComponent implements OnInit {
       const combinaFiltro = filtro === 'TODOS' || item.statusReserva === filtro;
       const combinaTermo =
         !termo ||
-        item.livro.titulo.toLowerCase().includes(termo) ||
-        item.usuario.nome.toLowerCase().includes(termo);
-      return combinaFiltro && combinaTermo;
+        item.livro?.titulo?.toLowerCase().includes(termo) ||
+        item.livro?.registro?.toLowerCase().includes(termo) ||
+        item.usuario?.nome?.toLowerCase().includes(termo) ||
+        item.usuario?.matricula?.toLowerCase().includes(termo);
+      return Boolean(combinaFiltro && combinaTermo);
     });
   });
 
@@ -100,14 +102,20 @@ export class ReservasComponent implements OnInit {
   readonly livrosFiltrados = computed(() => {
     const termo = this.buscaLivro().toLowerCase();
     return this.livros().filter(
-      (l) => l.titulo.toLowerCase().includes(termo) || l.autor.toLowerCase().includes(termo)
+      (l) =>
+        l.titulo?.toLowerCase().includes(termo) ||
+        l.autor?.toLowerCase().includes(termo) ||
+        l.registro?.toLowerCase().includes(termo)
     );
   });
 
   readonly usuariosFiltrados = computed(() => {
     const termo = this.buscaUsuario().toLowerCase();
     return this.usuarios().filter(
-      (u) => u.nome.toLowerCase().includes(termo) || u.cpf.includes(termo)
+      (u) =>
+        u.nome?.toLowerCase().includes(termo) ||
+        u.cpf?.toLowerCase().includes(termo) ||
+        u.matricula?.toLowerCase().includes(termo)
     );
   });
 

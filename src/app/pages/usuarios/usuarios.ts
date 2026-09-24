@@ -28,11 +28,15 @@ export class UsuariosComponent implements OnInit {
   readonly pagina = signal(1);
   readonly itensPorPagina = 8;
 
-  readonly form = this.fb.nonNullable.group({
+  readonly form = this.fb.group({
     cpf: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     nome: ['', Validators.required],
+    matricula: [''],
+    setor: [''],
     email: ['', [Validators.required, Validators.email]],
-    telefone: ['', [Validators.required, Validators.pattern(/\d{11}$/)]],
+    telefone: ['', [Validators.required]],
+    tipoUsuario: ['ROLE_USUARIO', Validators.required],
+    senha: [''],
   });
 
   readonly totalAtivos = computed(
@@ -49,14 +53,16 @@ export class UsuariosComponent implements OnInit {
     return this.usuarios().filter((usuario) => {
       const combinaTermo =
         !termo ||
-        usuario.nome.toLowerCase().includes(termo) ||
-        usuario.cpf.toLowerCase().includes(termo) ||
-        usuario.email.toLowerCase().includes(termo) ||
-        usuario.telefone.toLowerCase().includes(termo);
+        usuario.nome?.toLowerCase().includes(termo) ||
+        usuario.cpf?.toLowerCase().includes(termo) ||
+        usuario.matricula?.toLowerCase().includes(termo) ||
+        usuario.setor?.toLowerCase().includes(termo) ||
+        usuario.email?.toLowerCase().includes(termo) ||
+        usuario.telefone?.toLowerCase().includes(termo);
 
       const combinaFiltro = filtro === 'TODOS' || usuario.statusUsuario === filtro;
 
-      return combinaTermo && combinaFiltro;
+      return Boolean(combinaTermo && combinaFiltro);
     });
   });
 
@@ -117,7 +123,16 @@ export class UsuariosComponent implements OnInit {
   abrirNovo(): void {
     this.editandoId.set(null);
     this.form.controls.cpf.enable();
-    this.form.reset({ cpf: '', nome: '', email: '', telefone: '' });
+    this.form.reset({
+      cpf: '',
+      nome: '',
+      matricula: '',
+      setor: '',
+      email: '',
+      telefone: '',
+      tipoUsuario: 'ROLE_USUARIO',
+      senha: '',
+    });
     this.sucesso.set(null);
     this.erro.set(null);
     this.drawerAberto.set(true);
@@ -128,8 +143,12 @@ export class UsuariosComponent implements OnInit {
     this.form.setValue({
       cpf: usuario.cpf,
       nome: usuario.nome,
+      matricula: usuario.matricula || '',
+      setor: usuario.setor || '',
       email: usuario.email,
       telefone: usuario.telefone,
+      tipoUsuario: usuario.tipoUsuario || 'ROLE_USUARIO',
+      senha: '',
     });
     this.form.controls.cpf.disable();
     this.sucesso.set(null);
@@ -149,7 +168,21 @@ export class UsuariosComponent implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const val = this.form.getRawValue();
+    const payload: any = {
+      cpf: val.cpf,
+      nome: val.nome,
+      matricula: val.matricula?.trim() ? val.matricula.trim() : undefined,
+      setor: val.setor?.trim() ? val.setor.trim() : undefined,
+      email: val.email,
+      telefone: val.telefone,
+      tipoUsuario: val.tipoUsuario || 'ROLE_USUARIO',
+    };
+
+    if (val.senha?.trim()) {
+      payload.senha = val.senha.trim();
+    }
+
     const id = this.editandoId();
     this.salvando.set(true);
     this.erro.set(null);
@@ -161,7 +194,7 @@ export class UsuariosComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        this.sucesso.set(id ? 'Usuário atualizado.' : 'Usuário cadastrado.');
+        this.sucesso.set(id ? 'Usuário atualizado com sucesso.' : 'Usuário cadastrado com sucesso.');
         this.salvando.set(false);
         this.fecharDrawer();
         this.carregar();

@@ -57,3 +57,67 @@
   border-radius: 0.7rem;
   box-shadow: var(--shadow-soft);
 }
+
+.item-title {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.sub-reg {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.72rem;
+  color: var(--accent-deep);
+  background: #e6f3ee;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  margin-top: 0.2rem;
+}
+
+.user-item-name {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.sub-mat {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-family: monospace;
+}
+
+.staff-name {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+
+.trx-pill {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.68rem;
+  color: #4b5563;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  margin-top: 0.2rem;
+}
+
+.renew-badge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #4338ca;
+  background: #eef2ff;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.35rem;
+}
+
+.drawer-subtitle {
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: block;
+  margin-top: 0.15rem;
+}
